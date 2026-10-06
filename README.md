@@ -2,10 +2,10 @@
 
 ## Course Overview
 
-Students design, build, and evaluate a full document-AI pipeline — character detection, radical-based recognition, IDS-level sequence alignment, and confidence-weighted pseudo-labeling — modeled on a published research system for historical Hán-Nôm document annotation (Nguyen et al., *Pattern Recognition Letters*, 2026).
+Students design, build, and evaluate a full document-AI pipeline — character detection, radical-based recognition, IDS-level sequence alignment, and confidence-weighted pseudo-labeling — modeled on a published research system for historical Hán-Nôm document annotation.
 
 - **Format:** 15 weeks, 4 contact hours/week (60 hours total), teams of 3–4 students
-- **Structure:** the whole class moves through the pipeline stage by stage (detection → recognition → alignment → pseudo-labeling); each team builds the complete pipeline end-to-end on an assigned document subset, so results are comparable across teams at the final presentation
+- **Structure:** the whole class moves through the pipeline stage by stage (detection → recognition → alignment → pseudo-labeling); each team builds the complete pipeline end-to-end on the whole NomNaOCR dataset, so results are comparable across teams at the final presentation
 - **Prerequisites:** deep learning foundations (CNNs, training loops, PyTorch/TensorFlow), basic Python; no prior OCR/CV or CJK-script experience assumed
 - **Resources:** lab GPUs and the datasets used in the source paper — the NomNaOCR corpus (2,953 pages), TUAT-Nakagawa detection annotations, MTHv2 pretraining set, and the CHISE/cjkvi-ids dictionary
 - **Learning objectives:** by Week 15, teams can fine-tune an object detector for character-level localization; train a sequence model to predict compositional (IDS) character representations; implement a dynamic-programming alignment algorithm that recovers box-to-character correspondence with a graded confidence score; run an iterative confidence-weighted self-training loop; and evaluate results against a baseline using CER and precision/recall metrics
@@ -38,16 +38,16 @@ The table gives the overview; the per-week details (reading, starter kit, tasks)
 | Week | Phase | Topic & In-Class Focus | Lab / Studio Work | Deliverable | Lab |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Orientation | Course kickoff; journal-club read of the source paper; intro to Hán-Nôm OCR and IDS decomposition; team formation | Clone starter repo + `nom-ids`; verify GPU and 5-page sample access | Teams formed; environment verified; one sample page loaded and printed | [labs/week-01-orientation](labs/week-01-orientation/) |
-| 2 | Foundations | Object detection for character localization; DP sequence-alignment primer; weak supervision / pseudo-labeling concepts | Browse the assigned folder's images/labels; skim NW/edit-distance primer; draft project charter | Project charter; each team assigned a document subset | [labs/week-02-foundations](labs/week-02-foundations/) |
-| 3 | Detection I | YOLOv11n architecture; annotation format; transfer learning from MTHv2 pretraining | Run given YOLO script on small MTHv2 sample; scale to full MTHv2; detect + visualize on NomNaOCR | Trained YOLO detector + detection output and visualizations on team's NomNaOCR subset | [labs/week-03-detection-1](labs/week-03-detection-1/) |
+| 2 | Foundations | Object detection for character localization; DP sequence-alignment primer; weak supervision / pseudo-labeling concepts | Browse the whole dataset's images/labels; skim NW/edit-distance primer; draft project charter | Project charter; each team working with the whole dataset | [labs/week-02-foundations](labs/week-02-foundations/) |
+| 3 | Detection I | YOLOv11n architecture; annotation format; transfer learning from MTHv2 pretraining | Run given YOLO script on small MTHv2 sample; scale to full MTHv2; detect + visualize on NomNaOCR | Trained YOLO detector + detection output and visualizations on the whole NomNaOCR dataset | [labs/week-03-detection-1](labs/week-03-detection-1/) |
 | 4 | Detection II | Detection metrics (Precision/Recall/mAP@50); detector error modes (merges, splits, spurious/missed boxes) | Fine-tune MTHv2-pretrained YOLO on TUAT-Nakagawa; evaluate with ultralytics; tag errors | Fine-tuned detector + metrics report + error-analysis gallery | [labs/week-04-detection-2](labs/week-04-detection-2/) |
 | 5 | Recognition I | Ideographic Description Sequences (IDS); CHISE/cjkvi-ids dictionary; compositional character representation | Implement text→IDS mapping; validate on 5-char example; report vocabulary coverage; prepare crops | IDS decomposition utility + recognizer training set | [labs/week-05-recognition-1](labs/week-05-recognition-1/) |
 | 6 | Recognition II | Encoder–decoder / attention-based recognizers (BTTR-style); greedy decoding | Implement greedy decoding from logits; validate on synthetic fixtures; run on real boxes with given checkpoint | Greedy-decode implementation + raw inference output | [labs/week-06-recognition-2](labs/week-06-recognition-2/) |
-| 7 | Recognition III | Deduplication for speed; IDS→Unicode composition; midterm prep | Implement dedup + IDS→Unicode; full decode on subset; combined detection+recognition demo | Decoding module + combined demo + midterm slide draft | [labs/week-07-recognition-3](labs/week-07-recognition-3/) |
+| 7 | Recognition III | Deduplication for speed; IDS→Unicode composition; midterm prep | Implement dedup + IDS→Unicode; full decode on the whole dataset; combined detection+recognition demo | Decoding module + combined demo + midterm slide draft | [labs/week-07-recognition-3](labs/week-07-recognition-3/) |
 | 8 | Midterm | Midterm presentations: detection + recognition results, error analysis, alignment-stage plan | Team presentations (\~15 min + Q&A) | **Midterm presentation (graded)** | [labs/week-08-midterm](labs/week-08-midterm/) |
 | 9 | Alignment I | Box-to-line assignment; formalizing correspondence recovery | Implement center-in-rectangle box-to-line test and grouping/sorting; validate on 2 synthetic pages | Box-to-line assignment module, validated then run on real data | [labs/week-09-alignment-1](labs/week-09-alignment-1/) |
 | 10 | Alignment II | Two-level IDS-level DP alignment — the paper's Algorithm 1 | Implement outer DP + backtracking with inner IDS edit distance; verify against hand-computed toy example | DP alignment implementation verified on a toy example | [labs/week-10-alignment-2](labs/week-10-alignment-2/) |
-| 11 | Alignment III | Confidence score s\_i; binary-flag baseline; running at scale | Add confidence score (Eq. 2); implement binary-flag variant; run both on full subset; plot s\_i distribution | Confidence-weighted alignment + binary-flag baseline run on team's subset | [labs/week-11-alignment-3](labs/week-11-alignment-3/) |
+| 11 | Alignment III | Confidence score s\_i; binary-flag baseline; running at scale | Add confidence score (Eq. 2); implement binary-flag variant; run both on whole dataset; plot s\_i distribution | Confidence-weighted alignment + binary-flag baseline run on whole dataset | [labs/week-11-alignment-3](labs/week-11-alignment-3/) |
 | 12 | Pseudo-labeling I | Confidence-weighted training loop design | Implement confidence-weighted loss; wire recognize→align→weight→fine-tune loop; run one real iteration | Confidence-weighted fine-tuning loop run for one iteration | [labs/week-12-pseudo-labeling-1](labs/week-12-pseudo-labeling-1/) |
 | 13 | Pseudo-labeling II & Metrics | Modified CER; precision/recall by confidence band | Implement both metrics on toy examples; build human-verified holdout with annotation app; run on holdout | Modified CER + confidence-band P/R, validated then run on holdout | [labs/week-13-pseudo-labeling-2](labs/week-13-pseudo-labeling-2/) |
 | 14 | Integration | Robustness to detector segmentation noise; per-document-type analysis | Implement box duplicate/drop noise injection; run at 5%/10%; per-document-type table; dry-run final talk | Noise-injection implementation + robustness results + finalized report materials | [labs/week-14-integration](labs/week-14-integration/) |
@@ -97,17 +97,17 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 
 **Topic:** Object detection for character localization; DP sequence-alignment primer; weak supervision/pseudo-labeling concepts.
 **Reading:** Dang et al., "NomNaOCR: The First Dataset for OCR on Han-Nom Script," RIVF (2022).
-**Starter kit (given):** full dataset access for the team's assigned folder; a blank project-charter template.
+**Starter kit (given):** full dataset access for the whole NomNaOCR dataset; a blank project-charter template.
 **Lab:** [labs/week-02-foundations](labs/week-02-foundations/)
 
 **Tasks:**
 
-- [ ] Browse the full images/line-labels for the team's assigned folder
+- [ ] Browse the full images/line-labels for the whole NomNaOCR dataset
 - [ ] Skim a Needleman–Wunsch/edit-distance primer and one weak-supervision reference
 - [ ] Team assigned one document folder/volume (from the paper's Table 4 list)
 - [ ] Submit a one-page project charter (goals, roles, risks)
 
-**Deliverable:** Project charter; team assigned a document subset.
+**Deliverable:** Project charter; team ready to work with the whole dataset.
 
 ### Week 3 — Detection I
 
@@ -121,10 +121,10 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 
 - [ ] Run the given YOLO training script on the small MTHv2 sample; confirm the training loop runs end-to-end
 - [ ] Scale training up to the full set of MTHv2 samples
-- [ ] Run the trained detector on the team's assigned NomNaOCR subset
+- [ ] Run the trained detector on the whole NomNaOCR dataset
 - [ ] Visualize detections with the given visualization script and review a few pages
 
-**Deliverable:** Trained YOLO detector (validated first on the small MTHv2 sample, then trained at full scale) + detection output and visualizations on the team's NomNaOCR subset.
+**Deliverable:** Trained YOLO detector (validated first on the small MTHv2 sample, then trained at full scale) + detection output and visualizations on the whole NomNaOCR dataset.
 
 ### Week 4 — Detection II
 
@@ -148,14 +148,14 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 **Reading:** Zhang, Du & Dai, "Radical analysis network..." (2020); Morioka, "CHISE" (2008).
 **Starter kit (given):** the character→IDS dictionary and vocabulary files only — no decomposition code.
 **You implement:** a function mapping ground-truth line text to IDS strings, character by character.
-**Small experiment:** test on a hand-picked 5-character line where you know the expected IDS strings by dictionary lookup, before running over the full assigned subset.
+**Small experiment:** test on a hand-picked 5-character line where you know the expected IDS strings by dictionary lookup, before running over the whole dataset.
 **Lab:** [labs/week-05-recognition-1](labs/week-05-recognition-1/)
 
 **Tasks:**
 
 - [ ] Implement the text→IDS mapping function
 - [ ] Validate it on the 5-character hand-picked example
-- [ ] Run it over the team's full assigned subset; report vocabulary coverage %
+- [ ] Run it over the whole dataset; report vocabulary coverage %
 - [ ] Prepare the cropped character-image set needed for recognizer inference
 
 **Deliverable:** IDS decomposition utility (validated on a toy example) + recognizer training set.
@@ -174,7 +174,7 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 - [ ] Implement greedy decoding from raw per-step logits
 - [ ] Validate on the synthetic logits fixtures (exact match required)
 - [ ] Run your decode loop on the team's real detected boxes using the given checkpoint
-- [ ] Save raw token sequences for the team's subset
+- [ ] Save raw token sequences for the whole dataset
 
 **Deliverable:** Greedy-decode implementation (validated on synthetic fixtures) + raw inference output.
 
@@ -190,7 +190,7 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 
 - [ ] Implement sequence deduplication and IDS→Unicode composition
 - [ ] Validate both on the hand-picked examples
-- [ ] Run the full decode step on the team's subset to produce predicted text + IDS per box
+- [ ] Run the full decode step on the whole dataset to produce predicted text + IDS per box
 - [ ] Assemble a combined detection+recognition demo; draft midterm slides
 
 **Deliverable:** Decoding module (validated on toy examples) + combined demo + midterm slide draft.
@@ -254,10 +254,10 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 
 - [ ] Add confidence-score computation to your alignment; verify by hand on the toy example
 - [ ] Implement the binary-flag variant of the same alignment
-- [ ] Run both variants on the team's full assigned subset; save both label sets
-- [ ] Plot the distribution of s\_i values across the team's subset
+- [ ] Run both variants on the whole dataset; save both label sets
+- [ ] Plot the distribution of s\_i values across the whole dataset
 
-**Deliverable:** Confidence-weighted alignment + binary-flag baseline, both run on the team's subset.
+**Deliverable:** Confidence-weighted alignment + binary-flag baseline, both run on the whole dataset.
 
 ### Week 12 — Pseudo-labeling I
 
@@ -271,7 +271,7 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 
 - [ ] Implement the confidence-weighted loss; verify on the synthetic mini-batch
 - [ ] Wire it into a fine-tuning loop (recognize → align → weight → fine-tune)
-- [ ] Run one real iteration on the team's subset
+- [ ] Run one real iteration on the whole dataset
 - [ ] Log CER and labeled coverage before/after
 
 **Deliverable:** Confidence-weighted fine-tuning loop, validated on a toy mini-batch, run for one real iteration.
@@ -289,7 +289,7 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 
 - [ ] Implement modified CER; verify against your hand-computed toy examples
 - [ ] Implement precision/recall by confidence band; verify on the 10-item toy table
-- [ ] Use the annotation app to build a small human-verified holdout for your subset
+- [ ] Use the annotation app to build a small human-verified holdout for the whole dataset
 - [ ] Compute both metrics on the real holdout; run 1–2 more self-training iterations if time allows
 
 **Deliverable:** Modified CER + confidence-band precision/recall, validated on toy examples, then run against the team's holdout.
@@ -307,7 +307,7 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 
 - [ ] Implement box duplication/drop noise injection; verify on the 10-box synthetic list
 - [ ] Run the noise experiment at 5% and 10% on the team's real detection output
-- [ ] Build the per-document-type table (binary-flag vs. graded alignment) for the team's folder
+- [ ] Build the per-document-type table (binary-flag vs. graded alignment) for all document types in the dataset
 - [ ] Finalize report tables/figures; full dry-run of the final presentation
 
 **Deliverable:** Noise-injection implementation (validated on a toy list) + robustness results + finalized report materials.
@@ -343,10 +343,18 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 
 - **Midterm presentation (Week 8, \~15 min + Q&A per team):** covers the detection and recognition stages — architecture choices, training metrics (P/R/mAP, per-character accuracy), error analysis, and the team's plan for the alignment stage. Feedback here directly shapes each team's Weeks 9–11 work.
 - **Final presentation (Week 15, \~20 min + Q&A/demo per team):** covers the complete pipeline — the alignment algorithm, confidence-weighted pseudo-labeling results, evaluation against the binary-flag baseline (CER, coverage, precision/recall by confidence band), and robustness findings. Accompanied by a written report and code repository submission.
-- Weighting: midterm presentation 20%, final presentation 60%, code/report/participation 20%.
+
+**Weighting:**
+
+| Assessment | Weight |
+| --- | --- |
+| Midterm presentation | 20% |
+| Final presentation | 60% |
+| Code/report | 10% |
+| Review session | 10% |
 
 ## Assumptions & Next Steps
 
 - The paper's full iterative self-updating loop runs 6 rounds; Weeks 12–13 compress this to 1–2 rounds given time constraints, with room to extend if pacing allows.
-- Assumes each team can be assigned one document subset from the paper's per-document-type table (DVSKTT-1–5, Lục Vân Tiên, Kiều 1866/1871/1872) for comparable final results — 8 subsets support up to 8 teams of 3–4 students (\~24–32 students total).
-- Still open: grading rubrics per presentation, and a detailed plan mapping specific teams to specific NomNaOCR folders.
+- Each team will handle the whole NomNaOCR dataset, covering all document types, for comparable final results.
+- Still open: grading rubrics per presentation.
