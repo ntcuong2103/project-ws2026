@@ -10,11 +10,17 @@ Students design, build, and evaluate a full document-AI pipeline — character d
 - **Resources:** lab GPUs and the datasets used in the source paper — the NomNaOCR corpus (2,953 pages), TUAT-Nakagawa detection annotations, MTHv2 pretraining set, and the CHISE/cjkvi-ids dictionary
 - **Learning objectives:** by Week 15, teams can fine-tune an object detector for character-level localization; train a sequence model to predict compositional (IDS) character representations; implement a dynamic-programming alignment algorithm that recovers box-to-character correspondence with a graded confidence score; run an iterative confidence-weighted self-training loop; and evaluate results against a baseline using CER and precision/recall metrics
 
-## Starter Kit and Lab Philosophy
+## Lab and Project Philosophy
 
-Students get a **stripped-down starter kit** derived from [nom-ocr-inference](https://github.com/ntcuong2103/nom-ocr-inference/tree/claude-edit) and its companion `nom-ids` package. The surrounding plumbing (config, CLI, I/O, data loading, the pretrained detector/recognizer checkpoints) is given, but the functions that embody the paper's actual contributions — the IDS-level alignment, the confidence-weighted training, the modified CER, the noise-robustness test — ship as stubs (docstring + `raise NotImplementedError`).
+This repository contains the instructor-maintained lab handouts, notebooks, fixtures,
+and shared teaching utilities. Each week begins with a small, hand-checkable example
+before scaling to real pages or the GPU cluster. Generated lab artifacts are kept in a
+persistent team workspace and reused by later labs.
 
-Every stub comes with a tiny, hand-checkable synthetic example so a team can validate its own implementation cheaply before running it on real pages or the GPU cluster. The instructor's own working implementation stays private, used only to generate expected outputs for these toy examples and for grading.
+Teams develop the assessed pipeline in their own repository rather than inside this
+lab repository. Teams choose when to create that repository and may follow the
+[optional project contract](docs/PROJECT-CONTRACT.md). The lab and project repositories
+remain separate so that lab updates do not overwrite or prescribe student work.
 
 ## Lecture Format (4 AHs per week)
 
@@ -31,14 +37,22 @@ Notes:
 - **Week 8 (Midterm)** and **Week 15 (Final)** replace this format with team presentations (see [Assessment](#assessment-two-presentations)).
 - The review in Part 1 is of the *previous* week's tasks, so each week's deliverable is presented at the start of the next session.
 
+## Week 1 — Start Here
+
+Complete the Week 1 onboarding before beginning the later labs:
+
+1. Follow the [Week 1 orientation lab](labs/week-01-orientation/) to verify your team workspaces and access to the shared NomNaOCR benchmark.
+2. Follow the [Slurm Quick Guide](https://github.com/ntcuong2103/project-ws2026/blob/main/SLURM-QUICK-GUIDE.md) to verify GPU access.
+3. Read the repository's [AI workspace rules](AGENTS.md) before using a coding agent.
+
 ## Tentative 15-Week Schedule
 
-The table gives the overview; the per-week details (reading, starter kit, tasks) are in [Weekly Task Details](#weekly-task-details). Each week has a **lab tutorial folder** linked in the *Lab* column.
+The table gives the overview; the per-week details (reading, provided materials, tasks) are in [Weekly Task Details](#weekly-task-details). Each week has a **lab tutorial folder** linked in the *Lab* column.
 
 | Week | Phase | Topic & In-Class Focus | Lab / Studio Work | Deliverable | Lab |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Orientation | Course kickoff; journal-club read of the source paper; intro to Hán-Nôm OCR and IDS decomposition; team formation | Clone starter repo + `nom-ids`; verify GPU and 5-page sample access | Teams formed; environment verified; one sample page loaded and printed | [labs/week-01-orientation](labs/week-01-orientation/) |
-| 2 | Foundations | Object detection for character localization; DP sequence-alignment primer; weak supervision / pseudo-labeling concepts | Browse the whole dataset's images/labels; skim NW/edit-distance primer; draft project charter | Project charter; each team working with the whole dataset | [labs/week-02-foundations](labs/week-02-foundations/) |
+| 1 | Orientation | Course kickoff; journal-club read of the source paper; intro to Hán-Nôm OCR and IDS decomposition; team formation | Verify server and shared-data access; clone this lab repo; prepare the persistent 5-page sample with a CPU-only Slurm job; visualize it from an interactive allocation | Teams formed; environment and Slurm verified; five local sample pages visualized | [labs/week-01-orientation](labs/week-01-orientation/) |
+| 2 | Foundations | Two-paper problem formulation; NomNaOCR structure; character-level edit distance | Inventory the full dataset; audit five sample pages; compare page transcriptions; draft the project charter | Executed EDA notebook + project charter | [labs/week-02-foundations](labs/week-02-foundations/) |
 | 3 | Detection I | YOLOv11n architecture; annotation format; transfer learning from MTHv2 pretraining | Run given YOLO script on small MTHv2 sample; scale to full MTHv2; detect + visualize on NomNaOCR | Trained YOLO detector + detection output and visualizations on the whole NomNaOCR dataset | [labs/week-03-detection-1](labs/week-03-detection-1/) |
 | 4 | Detection II | Detection metrics (Precision/Recall/mAP@50); detector error modes (merges, splits, spurious/missed boxes) | Fine-tune MTHv2-pretrained YOLO on TUAT-Nakagawa; evaluate with ultralytics; tag errors | Fine-tuned detector + metrics report + error-analysis gallery | [labs/week-04-detection-2](labs/week-04-detection-2/) |
 | 5 | Recognition I | Ideographic Description Sequences (IDS); CHISE/cjkvi-ids dictionary; compositional character representation | Implement text→IDS mapping; validate on 5-char example; report vocabulary coverage; prepare crops | IDS decomposition utility + recognizer training set | [labs/week-05-recognition-1](labs/week-05-recognition-1/) |
@@ -81,33 +95,38 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 
 **Topic:** Course kickoff; journal-club read of the source paper; intro to Hán-Nôm OCR and IDS decomposition; team formation.
 **Reading:** Nguyen et al., "Confidence-Weighted Annotation of Historical Nôm Documents via IDS-Level Sequence Alignment," *PRL* (2026) — read in full.
-**Starter kit (given):** empty project scaffold — `config.py`, folder layout, a 5-page sample of images + line labels, and the IDS dictionary/vocab files. No pipeline code yet.
+**Provided lab materials:** workspace rules, a reusable sample-data utility, and a notebook for inspecting and visualizing five NomNaOCR pages.
 **Lab:** [labs/week-01-orientation](labs/week-01-orientation/)
 
 **Tasks:**
 
-- [ ] Clone the starter repo and `nom-ids` (release branch); `uv sync`
-- [ ] Verify GPU access and read/write access to the 5-page sample
-- [ ] Read `Readme.md`/`CLAUDE.md` and the paper's abstract + Figure 1; come ready to discuss
+- [ ] Verify server workspace and shared-data access
+- [ ] Clone this lab repository under `/home/projectgX`; run `uv sync`
+- [ ] Create `/data/projectgX/lab-exercise`; prepare its persistent sample using the provided CPU-only `sbatch` job
+- [ ] Inspect the Slurm job and its resource request
+- [ ] Visualize all five sample pages from a short CPU-only interactive allocation
+- [ ] Read this repository's `AGENTS.md`
+- [ ] Read the paper's abstract + Figure 1; come ready to discuss
 - [ ] Form teams of 3–4 and submit the team roster
 
-**Deliverable:** Teams formed; environment verified; one sample page loaded and printed successfully.
+**Deliverable:** Teams formed; environment and Slurm verified; five local sample pages loaded and visualized successfully.
 
 ### Week 2 — Foundations
 
-**Topic:** Object detection for character localization; DP sequence-alignment primer; weak supervision/pseudo-labeling concepts.
-**Reading:** Dang et al., "NomNaOCR: The First Dataset for OCR on Han-Nom Script," RIVF (2022).
-**Starter kit (given):** full dataset access for the whole NomNaOCR dataset; a blank project-charter template.
+**Topic:** Problem formulation from the dataset and automated-annotation papers; NomNaOCR EDA; character-level edit distance and normalized similarity.
+**Reading:** Dang et al., "NomNaOCR: The First Dataset for Optical Character Recognition on Han-Nom Script," RIVF (2022); Nguyen et al., "Automated Character-Level Annotation for Historical Nom Documents via an Iterative Self-updating Radical-Based Recognizer," ICDAR (2026).
+**Starter kit (given):** full read-only NomNaOCR access, the persistent five-page Week 1 sample, a guided EDA/edit-distance notebook, and a project-charter template.
 **Lab:** [labs/week-02-foundations](labs/week-02-foundations/)
 
 **Tasks:**
 
-- [ ] Browse the full images/line-labels for the whole NomNaOCR dataset
-- [ ] Skim a Needleman–Wunsch/edit-distance primer and one weak-supervision reference
-- [ ] Team assigned one document folder/volume (from the paper's Table 4 list)
-- [ ] Submit a one-page project charter (goals, roles, risks)
+- [ ] Compare the two papers and formulate the missing character-level annotation problem
+- [ ] Inventory the full dataset's filesystem, counts, sizes, image formats, and label formats
+- [ ] Audit page quality, layout, reading order, and label conventions on all five Week 1 pages
+- [ ] Implement four edit distances and compute pairwise similarities for the five page transcriptions
+- [ ] Submit a one-page project charter with testable goals/non-goals, success criteria, roles, risks, owners, and immediate actions
 
-**Deliverable:** Project charter; team ready to work with the whole dataset.
+**Deliverable:** Executed EDA/edit-distance notebook and one-page project charter.
 
 ### Week 3 — Detection I
 
@@ -329,13 +348,13 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 | Assign by | Reading | Focus |
 | --- | --- | --- |
 | Week 1 | Nguyen et al., "Confidence-Weighted Annotation of Historical Nôm Documents via IDS-Level Sequence Alignment," *Pattern Recognition Letters* (2026) | The paper the whole course builds toward; read in full for the Week 1 journal club |
-| Week 1–2 | Dang et al., "NomNaOCR: The First Dataset for Optical Character Recognition on Han-Nom Script," RIVF (2022) | The dataset every team trains and evaluates on |
+| Week 2 | Dang et al., "NomNaOCR: The First Dataset for Optical Character Recognition on Han-Nom Script," RIVF (2022) | The dataset every team trains and evaluates on |
+| Week 2; re-read Week 9 | Nguyen et al., "Automated Character-Level Annotation for Historical Nom Documents via an Iterative Self-updating Radical-Based Recognizer," ICDAR (2026) | Problem formulation, detector–recognizer pipeline, and iterative pseudo-labeling baseline |
 | Week 3–4 | Khanam & Hussain, "YOLOv11: An Overview of the Key Architectural Enhancements" (2024) | Detector architecture used in `detection.py` |
 | Week 3–4 | Ma et al., "Joint Layout Analysis, Character Detection and Recognition for Historical Document Digitization," ICFHR (2020) | TUAT-Nakagawa detection annotations used to fine-tune the detector |
 | Week 5–7 | Zhao et al., "Handwritten Mathematical Expression Recognition with A Bidirectionally Trained Transformer (BTTR)," ICDAR (2021) | Architecture behind `LitBTTR`, the recognizer in `ocr_inference.py` |
 | Week 5–7 | Zhang, Du & Dai, "Radical analysis network for learning hierarchies of Chinese characters," Pattern Recognition (2020) | Why characters are represented as IDS/radical decompositions instead of atomic classes |
-| Week 9–11 | Nguyen et al., "Automated Character-Level Annotation for Historical Nom Documents via an Iterative Self-updating Radical-Based Recognizer," ICDAR (2026) | The binary-flag baseline this course's alignment work replaces |
-| Week 9–11 | Morioka, "CHISE: Character Processing Based on Character Ontology" (2008) | The IDS decomposition dictionary (`nom-ids/ids_exp.txt`) |
+| Week 9–11 | Morioka, "CHISE: Character Processing Based on Character Ontology" (2008) | The provided IDS decomposition dictionary |
 | Week 12–13 | Source paper, §3.3–3.4 and §4.2–4.4.3 (re-read) | Confidence-weighted selection/training design and the modified CER metric, to implement directly |
 | Week 14 | Source paper, §4.4.5 and §5 (Discussion) (re-read) | Robustness-to-noise experiment design and the paper's own stated limitations |
 

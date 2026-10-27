@@ -1,0 +1,27 @@
+[project]
+name = "nom-ocr-lab"
+version = "0.1.0"
+description = "Lab environment for the Confidence-Weighted Nom OCR project course"
+requires-python = ">=3.10"
+dependencies = [
+    "ipykernel>=6.29",
+    "jupyterlab>=4.0",
+    "matplotlib>=3.8",
+    "pillow>=10.0",
+]
+
+[dependency-groups]
+dev = [
+    "nbclient>=0.10",
+    "pytest>=8.0",
+]
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["uv_build>=0.8.0,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

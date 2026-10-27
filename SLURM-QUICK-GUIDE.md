@@ -1,9 +1,65 @@
 # Slurm Quick Guide (server `local-a100`)
 
-How to run work on this server with Slurm: interactive sessions vs. batch jobs,
-ready-to-use scripts, GPU options, and how to release resources when done.
+The preferred way to run work is to submit a batch job with `sbatch`. Slurm
+then schedules the job when the requested resources are available, keeps it
+running after you disconnect, and releases its resources when it finishes.
 
-## 1. This server at a glance
+## 1. Ready to use: submit a batch job with `sbatch`
+
+Create the log directory once, then submit:
+
+```bash
+mkdir -p logs
+sbatch job.sh
+```
+
+Use this `job.sh` as a starting point:
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=myjob
+#SBATCH --partition=gpu
+#SBATCH --account=lab
+#SBATCH --qos=normal                 # or "long" (up to 7 days, 1 running job)
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=32G
+#SBATCH --time=12:00:00
+#SBATCH --gres=gpu:a100_3g.20gb:1    # a100 | a100_3g.20gb | a100_2g.10gb | a100_2g.10gb_mps
+#SBATCH --output=logs/%x-%j.out      # %x = job name, %j = job id
+#SBATCH --error=logs/%x-%j.err
+##SBATCH --mail-type=END,FAIL        # uncomment for email
+##SBATCH --mail-user=you@example.com
+
+set -euo pipefail
+
+echo "Job $SLURM_JOB_ID on $(hostname) started at $(date)"
+nvidia-smi -L
+
+# --- load your environment ---
+# module load python/3.11
+# source ~/venvs/myenv/bin/activate
+
+# --- your work ---
+python my_script.py
+
+echo "Finished at $(date)"
+```
+
+For a CPU-only job, delete the `--gres` line.
+
+### Several runs of the same script (job array)
+
+```bash
+#SBATCH --array=1-10%1               # 10 tasks, at most 1 at a time
+python my_script.py --index "$SLURM_ARRAY_TASK_ID"
+```
+
+Keep the `%N` throttle low: each array task counts as a job and shares the
+GPUs with other users.
+
+## 2. This server at a glance
 
 | Item | Value |
 |---|---|
@@ -20,6 +76,24 @@ Because everything runs on one shared machine, **always request the CPUs,
 memory and GPU you need through Slurm** so that other users' jobs are not
 disturbed. Memory is *not* limited by default (`DefMemPerNode=UNLIMITED`), so
 always pass `--mem`.
+
+### Am I inside a Slurm allocation?
+
+This installation has one physical node and no separate login node, so `hostname`
+normally reports `gpu-a240` both outside and inside a job. Check Slurm's environment
+instead:
+
+```bash
+if [[ -n "${SLURM_JOB_ID:-}" ]]; then
+  echo "Inside Slurm job $SLURM_JOB_ID"
+  scontrol show job "$SLURM_JOB_ID"
+else
+  echo "Outside a Slurm allocation"
+fi
+```
+
+The same rule applies to a notebook kernel. Inspect `SLURM_JOB_ID` from Python; do not
+infer allocation status from the hostname.
 
 ### QOS limits
 
@@ -53,7 +127,7 @@ Notes:
   and `squeue` to see who holds what.
 - Inside a job, `nvidia-smi -L` shows the GPU or MIG device you were given.
 
-## 2. Interactive session vs. batch job
+## 3. Why batch jobs are preferred
 
 | | Interactive session | Batch job |
 |---|---|---|
@@ -91,10 +165,10 @@ Notes:
 - Harder to debug interactively.
 - Errors may only show up after the job starts, so check the log file.
 
-**Rule of thumb:** develop and debug interactively with a *short* time limit
-and the smallest GPU slice that fits; run the real, long workloads as batch jobs.
+**Default to `sbatch` for scheduled work.** Use an interactive session only
+for short development and debugging with the smallest GPU slice that fits.
 
-## 3. Ready-to-use: interactive session
+## 4. Interactive sessions for short debugging
 
 ```bash
 # CPU only: 4 cores, 16 GB RAM, 2 hours
@@ -146,61 +220,6 @@ background processes) before exiting. Check that nothing is left:
 ```bash
 squeue -u $USER
 ```
-
-## 4. Ready-to-use: batch job
-
-Create the log directory once, then submit:
-
-```bash
-mkdir -p logs
-sbatch job.sh
-```
-
-`job.sh`:
-
-```bash
-#!/bin/bash
-#SBATCH --job-name=myjob
-#SBATCH --partition=gpu
-#SBATCH --account=lab
-#SBATCH --qos=normal                 # or "long" (up to 7 days, 1 running job)
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=32G
-#SBATCH --time=12:00:00
-#SBATCH --gres=gpu:a100_3g.20gb:1    # a100 | a100_3g.20gb | a100_2g.10gb | a100_2g.10gb_mps
-#SBATCH --output=logs/%x-%j.out      # %x = job name, %j = job id
-#SBATCH --error=logs/%x-%j.err
-##SBATCH --mail-type=END,FAIL        # uncomment for email
-##SBATCH --mail-user=you@example.com
-
-set -euo pipefail
-
-echo "Job $SLURM_JOB_ID on $(hostname) started at $(date)"
-nvidia-smi -L
-
-# --- load your environment ---
-# module load python/3.11
-# source ~/venvs/myenv/bin/activate
-
-# --- your work ---
-python my_script.py
-
-echo "Finished at $(date)"
-```
-
-For a CPU-only job, delete the `--gres` line.
-
-### Several runs of the same script (job array)
-
-```bash
-#SBATCH --array=1-10%1               # 10 tasks, at most 1 at a time
-python my_script.py --index "$SLURM_ARRAY_TASK_ID"
-```
-
-Keep the `%N` throttle low: each array task counts as a job and shares the
-GPUs with other users.
 
 ## 5. Common commands
 

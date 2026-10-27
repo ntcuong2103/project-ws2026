@@ -29,12 +29,25 @@ The shared datasets are linked once under `~/datasets`, and the repository's `da
 symlink makes the paths used by the scripts resolve to that shared location.
 
 ```bash
+# Return to your home directory.
 cd
+
+# Create a short link to your team's data workspace.
 ln -s /data/projectgX workspace
+
+# Create a short link to the shared course datasets.
 ln -s /data/shared/project2026 datasets
+
+# Enter your team's data workspace.
 cd workspace
+
+# Download the character-detection project.
 git clone https://github.com/ntcuong2103/nom-ocr-project.git
+
+# Enter the downloaded project.
 cd nom-ocr-project
+
+# Make the shared datasets available inside the project.
 ln -s ~/datasets datasets
 ```
 
@@ -42,7 +55,10 @@ If any of these symlinks already exist, keep the existing link rather than repla
 You can verify the two data links with:
 
 ```bash
+# Show where the home-directory dataset link points.
 readlink -f "$HOME/datasets"
+
+# Show where the project's dataset link points.
 readlink -f datasets
 ```
 
@@ -67,12 +83,18 @@ if you don't have it yet (`curl -LsSf https://astral.sh/uv/install.sh | sh`), th
 virtual environment in the repo and install the dependencies:
 
 ```bash
+# Create a Python virtual environment for the project.
 uv venv
+
+# Install the packages used in this lab.
 uv pip install ultralytics imagesize tqdm pillow matplotlib
 
 # Ultralytics pulls in opencv-python, which needs the system OpenGL lib (libGL.so.1).
 # Swap it for the headless build so `import cv2` works on machines without it.
+# Remove the GUI-enabled OpenCV package.
 uv pip uninstall opencv-python
+
+# Install OpenCV without desktop GUI dependencies.
 uv pip install opencv-python-headless
 ```
 
@@ -85,6 +107,7 @@ this lab with `uv run` (e.g. `uv run python train.py`) — the two are equivalen
 Sanity-check the install:
 
 ```bash
+# Verify that OpenCV and Ultralytics import successfully.
 uv run python -c "import cv2; from ultralytics import YOLO; print('ok')"
 ```
 
@@ -99,12 +122,14 @@ uv run python -c "import cv2; from ultralytics import YOLO; print('ok')"
 On a GPU node, list the assigned GPU UUIDs:
 
 ```bash
+# Print the UUID and model name of each visible GPU.
 nvidia-smi --query-gpu=uuid,name --format=csv,noheader
 ```
 
 If the machine uses MIG, list the GPU and MIG device UUIDs with:
 
 ```bash
+# List full GPUs and any MIG devices available in the allocation.
 nvidia-smi -L
 ```
 
@@ -157,6 +182,7 @@ image path — get the folder names wrong and your labels silently won't load.
 Open one label file and look at it:
 
 ```bash
+# Preview the first five bounding-box annotations for one page.
 head -5 ~/datasets/nakagawalab/labels/nlvnpf-0023-022.txt
 ```
 
@@ -231,7 +257,10 @@ names: ["character"]
 Open `class_mapping.txt`:
 
 ```bash
+# Preview how class IDs map to characters.
 head -5 ~/datasets/nakagawalab/class_mapping.txt
+
+# Count the character classes in the mapping.
 wc -l ~/datasets/nakagawalab/class_mapping.txt
 ```
 
@@ -297,7 +326,10 @@ for label_path in glob.glob(f"{label_dir}/*.txt"):
 Compare a label file before and after:
 
 ```bash
+# Preview the original multi-class labels.
 head -3 datasets/lab-char-detect/labels/nlvnpf-0023-022.txt
+
+# Preview the converted single-class labels for comparison.
 head -3 datasets/lab-char-detect/labels_single/nlvnpf-0023-022.txt
 ```
 
@@ -542,6 +574,7 @@ output dict:
 ### 6.3 Run the repo's evaluator
 
 ```bash
+# Evaluate predicted boxes against the validation labels at IoU 0.5.
 uv run python evaluate_detection_yolo.py \
   --gt_dir datasets/lab-char-detect/labels/val \
   --pred_dir runs/detect/lab-runs/predict_labels/labels \
