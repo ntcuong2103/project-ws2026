@@ -55,9 +55,9 @@ The table gives the overview; the per-week details (reading, provided materials,
 | 2 | Foundations | Two-paper problem formulation; NomNaOCR structure; character-level edit distance | Explain how line supervision and character positions become pseudo ground truth; audit five sample triplets; compare page transcriptions | Executed EDA notebook with problem statement and pseudo-ground-truth pipeline explanation | [labs/week-02-foundations](labs/week-02-foundations/) |
 | 3 | Detection I | Single-class character detection; YOLO format and training | Convert a box by hand; fit a fixed 24-page MTH1000 sample; interpret losses/checkpoints; compare 640/1280; train full MTH1000; evaluate and visualize NomNaOCR | MTH1000 checkpoint and test metrics; coordinate/resolution exercises; NomNaOCR metrics, predictions, and overlays | [Week 3 lab](labs/week-03-detection-1/) |
 | 4 | Detection II | Character-level metrics, domain adaptation, and error modes | Inspect Nakagawa class collapse; fine-tune the Week 3 checkpoint; calculate IoU/AP; independently score saved labels; compare NomNaOCR runs | Fine-tuned checkpoint, independent evaluation, comparison table, and character-level error gallery | [Week 4 lab](labs/week-04-detection-2/) |
-| 5 | Recognition I | Ideographic Description Sequences (IDS); CHISE/cjkvi-ids dictionary; compositional character representation | Implement text→IDS mapping; validate on 5-char example; report vocabulary coverage; prepare crops | IDS decomposition utility + recognizer training set | [labs/week-05-recognition-1](labs/week-05-recognition-1/) |
-| 6 | Recognition II | Encoder–decoder / attention-based recognizers (BTTR-style); greedy decoding | Implement greedy decoding from logits; validate on synthetic fixtures; run on real boxes with given checkpoint | Greedy-decode implementation + raw inference output | [labs/week-06-recognition-2](labs/week-06-recognition-2/) |
-| 7 | Recognition III | Deduplication for speed; IDS→Unicode composition; midterm prep | Implement dedup + IDS→Unicode; full decode on the whole dataset; combined detection+recognition demo | Decoding module + combined demo + midterm slide draft | [labs/week-07-recognition-3](labs/week-07-recognition-3/) |
+| 5 | Recognition I | IDS operators, direct/expanded decompositions, and recognizer token vocabulary | Validate Chinese examples; analyze one Nôm page; verify with zi.tools; export unlabeled detector crops | IDS converter, page coverage report, manual checks, and inference crops | [labs/week-05-recognition-1](labs/week-05-recognition-1/) |
+| 6 | Recognition II | Recognizer logits, token vocabulary, and forward passes | Inspect synthetic, Chinese, Nôm, and real-box logits using the given checkpoint | Executed logits notebook + one-page top-token report | [labs/week-06-recognition-2](labs/week-06-recognition-2/) |
+| 7 | Recognition III | Autoregressive greedy decoding, deduplication, IDS→Unicode composition | Implement the decoder from next-token logits; run the full detector→recognizer pipeline; prepare midterm slides | Decoder tests + full per-box output + combined demo | [labs/week-07-recognition-3](labs/week-07-recognition-3/) |
 | 8 | Midterm | Midterm presentations: detection + recognition results, error analysis, alignment-stage plan | Team presentations (\~15 min + Q&A) | **Midterm presentation (graded)** | [labs/week-08-midterm](labs/week-08-midterm/) |
 | 9 | Alignment I | Box-to-line assignment; formalizing correspondence recovery | Implement center-in-rectangle box-to-line test and grouping/sorting; validate on 2 synthetic pages | Box-to-line assignment module, validated then run on real data | [labs/week-09-alignment-1](labs/week-09-alignment-1/) |
 | 10 | Alignment II | Two-level IDS-level DP alignment — the paper's Algorithm 1 | Implement outer DP + backtracking with inner IDS edit distance; verify against hand-computed toy example | DP alignment implementation verified on a toy example | [labs/week-10-alignment-2](labs/week-10-alignment-2/) |
@@ -168,61 +168,65 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 
 ### Week 5 — Recognition I
 
-**Topic:** Ideographic Description Sequences (IDS); CHISE/cjkvi-ids dictionary; compositional character representation.
-**Reading:** Zhang, Du & Dai, "Radical analysis network..." (2020); Morioka, "CHISE" (2008).
-**Starter kit (given):** the character→IDS dictionary and vocabulary files only — no decomposition code.
-**You implement:** a function mapping ground-truth line text to IDS strings, character by character.
-**Small experiment:** test on a hand-picked 5-character line where you know the expected IDS strings by dictionary lookup, before running over the whole dataset.
+**Topic:** IDS operators, direct versus recursively expanded decompositions, and text-level tokenization for Nôm recognition.
+**Reading:** Morioka, "CHISE" (2008); Zhang et al., "Radical analysis network for zero-shot learning in printed Chinese character recognition" (2018).
+**Starter kit (given):** pinned and checksum-verified `nom-ids` model resources, CJKVI source data, a runnable reference converter, and an unlabeled crop exporter.
+**You implement:** an equivalent character-by-character text→IDS converter in the team repository, then apply it to one real NomNaOCR page.
+**Small experiment:** reproduce the exact expanded IDS for `休好字明林`, compare direct and expanded forms, and manually verify five Nôm characters with zi.tools.
 **Lab:** [labs/week-05-recognition-1](labs/week-05-recognition-1/)
 
 **Tasks:**
 
-- [ ] Implement the text→IDS mapping function
-- [ ] Validate it on the 5-character hand-picked example
-- [ ] Run it over the whole dataset; report vocabulary coverage %
-- [ ] Prepare the cropped character-image set needed for recognizer inference
+- [ ] Download and verify the pinned IDS resources without changing vocabulary order
+- [ ] Validate text→IDS conversion on the five Chinese reference characters
+- [ ] Report coverage and OOV characters for one NomNaOCR page
+- [ ] Record five zi.tools checks and explain raw/expanded or glyph-variant differences
+- [ ] Export and inspect unlabeled inference crops from the Week 3–4 detector
 
-**Deliverable:** IDS decomposition utility (validated on a toy example) + recognizer training set.
+**Deliverable:** Validated IDS converter, one-page coverage report, zi.tools verification table, and unlabeled recognizer inference crops.
 
 ### Week 6 — Recognition II
 
-**Topic:** Encoder–decoder/attention-based recognizers (BTTR-style); greedy decoding.
+**Topic:** Encoder–decoder/attention-based recognizers (BTTR-style); logits and teacher-forced forward passes.
 **Reading:** Zhao et al., "BTTR," ICDAR (2021).
-**Starter kit (given):** the pretrained LitBTTR checkpoint and its forward pass (crop in, per-step logits out) — training the recognizer itself is out of scope.
-**You implement:** the greedy decoding loop that turns per-step logits into a token sequence (argmax + stopping condition), from scratch.
-**Small experiment:** run your decode loop on 3–4 hand-crafted logits arrays with known expected output tokens before wiring it to the real model.
+**Starter kit (given):** a YAML-configured LitBTTR adapter that returns crop/prefix logits; training the recognizer itself is out of scope.
+**You implement:** inspect logits, token IDs, softmax/top-*k* results, and prefix dependence. The decoder is Week 7 work.
+**Small experiment:** calculate argmax and probabilities for hand-crafted logits before inspecting the checkpoint's Chinese and Nôm crop logits.
 **Lab:** [labs/week-06-recognition-2](labs/week-06-recognition-2/)
 
 **Tasks:**
 
-- [ ] Implement greedy decoding from raw per-step logits
-- [ ] Validate on the synthetic logits fixtures (exact match required)
-- [ ] Run your decode loop on the team's real detected boxes using the given checkpoint
-- [ ] Save raw token sequences for the whole dataset
+- [ ] Inspect hand-crafted, Chinese, and Nôm logits with the configured vocabulary
+- [ ] Explain why independent teacher-forced argmax values are not an inference decoder
+- [ ] Run the forward adapter on one page of the full Week 4 detector handoff
+- [ ] Save a per-box top-token report
 
-**Deliverable:** Greedy-decode implementation (validated on synthetic fixtures) + raw inference output.
+**Deliverable:** Executed logits notebook, Chinese/Nôm inspection notes, and a one-page top-token report.
 
 ### Week 7 — Recognition III
 
-**Topic:** Deduplication for speed; IDS→Unicode composition; midterm prep.
-**Starter kit (given):** none new.
-**You implement:** deduplication of identical token sequences before decoding, and mapping a decoded IDS string back to a composed Unicode character where possible.
-**Small experiment:** test both functions on a handful of hand-picked token sequences (including one repeated sequence and one IDS string with no direct Unicode match) with known expected outputs.
+**Topic:** Autoregressive greedy decoding, deduplication, IDS→Unicode composition, and midterm preparation.
+**Starter kit (given):** next-token logits primitive and fixed decoder fixtures.
+**You implement:** greedy decoding from SOS through EOS/max length, then deduplication and one-to-many IDS→Unicode candidate lookup.
+**Small experiment:** exact-match normal EOS, immediate EOS, repeated-token, and maximum-length decoder fixtures.
 **Lab:** [labs/week-07-recognition-3](labs/week-07-recognition-3/)
 
 **Tasks:**
 
-- [ ] Implement sequence deduplication and IDS→Unicode composition
-- [ ] Validate both on the hand-picked examples
-- [ ] Run the full decode step on the whole dataset to produce predicted text + IDS per box
+- [ ] Implement and exact-match test the greedy decoder
+- [ ] Implement sequence deduplication and IDS→Unicode candidate lookup
+- [ ] Run the full page → detector boxes → recognizer → decoder pipeline on the complete handoff
 - [ ] Assemble a combined detection+recognition demo; draft midterm slides
 
-**Deliverable:** Decoding module (validated on toy examples) + combined demo + midterm slide draft.
+**Deliverable:** Decoder module (validated on fixtures), full per-box recognition output, combined demo, and midterm slide draft.
 
 ### Week 8 — Midterm
 
 **Topic:** Midterm presentations (\~15 min + Q&A per team): detection + recognition results, error analysis, alignment-stage plan.
 **Lab:** [labs/week-08-midterm](labs/week-08-midterm/)
+
+Read [the midterm presentation rules](docs/MIDTERM-PRESENTATION.md), including the required
+team-membership slide and individual contribution statements.
 
 **Tasks:**
 
@@ -358,8 +362,8 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 | Week 3–4 | Khanam & Hussain, "YOLOv11: An Overview of the Key Architectural Enhancements" (2024) | Detector architecture used in `detection.py` |
 | Week 3–4 | Ma et al., "Joint Layout Analysis, Character Detection and Recognition for Historical Document Digitization," ICFHR (2020) | TUAT-Nakagawa detection annotations used to fine-tune the detector |
 | Week 5–7 | Zhao et al., "Handwritten Mathematical Expression Recognition with A Bidirectionally Trained Transformer (BTTR)," ICDAR (2021) | Architecture behind `LitBTTR`, the recognizer in `ocr_inference.py` |
-| Week 5–7 | Zhang, Du & Dai, "Radical analysis network for learning hierarchies of Chinese characters," Pattern Recognition (2020) | Why characters are represented as IDS/radical decompositions instead of atomic classes |
-| Week 9–11 | Morioka, "CHISE: Character Processing Based on Character Ontology" (2008) | The provided IDS decomposition dictionary |
+| Week 5 | Morioka, "CHISE: Character Processing Based on Character Ontology" (2008) | Character ontology and the limits of coded character sets for historical ideographs |
+| Week 5 | Zhang et al., "Radical analysis network for zero-shot learning in printed Chinese character recognition," ICME (2018) | Why shared structural tokens enable recognition beyond atomic character classes |
 | Week 12–13 | Source paper, §3.3–3.4 and §4.2–4.4.3 (re-read) | Confidence-weighted selection/training design and the modified CER metric, to implement directly |
 | Week 14 | Source paper, §4.4.5 and §5 (Discussion) (re-read) | Robustness-to-noise experiment design and the paper's own stated limitations |
 

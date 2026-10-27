@@ -1,0 +1,36 @@
+# Copy this to a private location or pass it with --config. Paths may use
+# ${LAB_WORKSPACE}; do not put real group IDs, checkpoints, or outputs in Git.
+paths:
+  detector_checkpoint: ${LAB_WORKSPACE}/models/week04-nakagawa/weights/best.pt
+  recognizer_checkpoint: ${LAB_WORKSPACE}/models/recognizer/litbttr.ckpt
+  vocabulary: ${LAB_WORKSPACE}/datasets/ids/nom-ids/vocab_ids.txt
+  expanded_ids: ${LAB_WORKSPACE}/datasets/ids/nom-ids/ids_exp.txt
+  images: ${LAB_WORKSPACE}/datasets/nomnaocr-character-detection/images/test
+  detector_labels: ${LAB_WORKSPACE}/predictions/week04-nomnaocr/labels
+  outputs: ${LAB_WORKSPACE}/predictions/week07-recognition
+
+model:
+  package_root: ${LAB_WORKSPACE}/models/nom-ids/nom-ids-ocr/src
+  class_path: nom_ids_ocr.lit_trainer:LitBTTR
+  d_model: 256
+  growth_rate: 24
+  num_layers: 16
+  nhead: 8
+  num_decoder_layers: 3
+  dim_feedforward: 1024
+  dropout: 0.3
+  sos_idx: 1
+  eos_idx: 2
+  pad_idx: 0
+  # Set this to len(vocab_ids.txt) + 3 when the checkpoint is supplied.
+  vocab_size: null
+
+preprocessing:
+  image_size: 128
+  expand_ratio: 1.2
+  invert: true
+
+inference:
+  batch_size: 32
+  device: cuda:0
+  max_length: 63

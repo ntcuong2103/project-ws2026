@@ -74,6 +74,40 @@ def _jsonable(value: Any) -> Any:
     return value
 
 
+def _prediction_manifest(
+    *,
+    source_root: Path,
+    model: Path,
+    args: argparse.Namespace,
+    images: list[Path],
+) -> dict[str, object]:
+    """Describe a complete detector handoff, including pages without boxes."""
+
+    return {
+        "version": 1,
+        "kind": "detector-predictions",
+        "source_images": str(source_root),
+        "model": str(model.resolve()),
+        "settings": {
+            "imgsz": args.imgsz,
+            "batch": args.batch,
+            "device": str(args.device),
+            "confidence": args.conf,
+            "nms_iou": args.iou,
+            "max_det": args.max_det,
+            "single_cls": True,
+        },
+        "pages": [
+            {
+                "page_id": relative.with_suffix("").as_posix(),
+                "image": relative.as_posix(),
+                "labels": relative.with_suffix(".txt").as_posix(),
+            }
+            for relative in images
+        ],
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
@@ -137,15 +171,12 @@ def main(argv: list[str] | None = None) -> int:
     run_root = _refuse_nonempty_run(output_root, args.name)
     source_root = args.source.resolve()
     image_suffixes = {".jpg", ".jpeg", ".png", ".tif", ".tiff"}
-    prediction_source = (
-        [
-            str(path)
-            for path in sorted(source_root.rglob("*"))
-            if path.is_file() and path.suffix.lower() in image_suffixes
-        ]
+    source_images = (
+        [path for path in sorted(source_root.rglob("*")) if path.is_file() and path.suffix.lower() in image_suffixes]
         if source_root.is_dir()
-        else str(source_root)
+        else [source_root]
     )
+    prediction_source = [str(path) for path in source_images] if source_root.is_dir() else str(source_root)
     if isinstance(prediction_source, list) and not prediction_source:
         raise SystemExit(f"No supported images found below {source_root}")
     model = YOLO(str(args.model))
@@ -177,6 +208,22 @@ def main(argv: list[str] | None = None) -> int:
         label_output.parent.mkdir(parents=True, exist_ok=True)
         result.save(filename=str(image_output))
         result.save_txt(str(label_output), save_conf=True)
+        # Ultralytics may omit an empty label file. The recognition handoff must
+        # distinguish a page with no boxes from a page that was never processed.
+        label_output.touch(exist_ok=True)
+    relative_images = [
+        path.relative_to(source_root) if source_root.is_dir() else Path(path.name)
+        for path in source_images
+    ]
+    payload = _prediction_manifest(
+        source_root=source_root,
+        model=args.model,
+        args=args,
+        images=relative_images,
+    )
+    (run_root / "manifest.json").write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
     return 0
 
 

@@ -138,6 +138,13 @@ uv run python -m nom_ocr_lab.compare_detection_metrics \
   --output "$LAB_WORKSPACE/metrics/nomnaocr-week03-vs-week04"
 ```
 
+This complete run is the Week 6–7 recognition handoff. Keep
+`$LAB_WORKSPACE/predictions/week04-nomnaocr/manifest.json` together with its nested `labels/`
+tree. The command writes one label file for every input page (empty if no character is detected),
+preserves the relative page path, and records the model and prediction settings. Do not move or
+renumber these labels: recognition uses the relative page path as `page_id` and row order as
+`box_id`.
+
 ## 6. Independent saved-label evaluation
 
 Ultralytics `model.val()` above is the authoritative course metric. Now reconstruct the metric
@@ -207,8 +214,9 @@ analyze Unicode identity: this detector predicts only the `character` class.
 1. Before/after Nakagawa label comparison.
 2. Nakagawa-fine-tuned `best.pt` and held-out test metrics.
 3. Week 4 NomNaOCR metrics and nested predictions.
-4. Week 3 versus Week 4 Markdown/CSV comparison table.
-5. Independent evaluator JSON/Markdown and a short comparison with `model.val()`.
-6. Ten-image error gallery and a half-page analysis answering the wrap-up questions.
+4. Complete NomNaOCR detector handoff: nested labels plus `manifest.json` for every page.
+5. Week 3 versus Week 4 Markdown/CSV comparison table.
+6. Independent evaluator JSON/Markdown and a short comparison with `model.val()`.
+7. Ten-image error gallery and a half-page analysis answering the wrap-up questions.
 
 Do not commit prepared datasets, weights, predictions, plots, caches, or logs.

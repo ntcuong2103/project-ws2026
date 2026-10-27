@@ -2231,6 +2231,7 @@ dependencies = [
     { name = "matplotlib", version = "3.11.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pillow", version = "12.3.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "pillow", version = "13.0.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "pyyaml" },
     { name = "ultralytics", version = "8.4.123", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11' and sys_platform == 'darwin'" },
     { name = "ultralytics", version = "8.4.190", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11' or sys_platform != 'darwin'" },
 ]
@@ -2247,6 +2248,7 @@ requires-dist = [
     { name = "jupyterlab", specifier = ">=4.0" },
     { name = "matplotlib", specifier = ">=3.8" },
     { name = "pillow", specifier = ">=10.0" },
+    { name = "pyyaml", specifier = ">=6.0" },
     { name = "ultralytics", specifier = ">=8.3,<9" },
 ]
 

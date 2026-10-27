@@ -4,12 +4,15 @@
 
 **Session:** this week replaces the review + lab format with team presentations (~15 min + Q&A per team).
 
+Read the complete [midterm presentation rules](../../docs/MIDTERM-PRESENTATION.md).
+
 ## Content to cover
 
 - Detection and recognition architecture choices
 - Training metrics (P/R/mAP, per-character accuracy)
 - Error analysis
 - Plan for the alignment stage (Weeks 9–11)
+- The required team-membership/contribution slide described in the presentation rules
 
 ## Tasks
 

@@ -18,10 +18,23 @@ Replace `X` with the assigned group number.
 │   ├── mth1000-practice/                # Week 3 same-data fitting check
 │   ├── mth1000-full/                    # deterministic 80/10/10 split
 │   ├── nomnaocr-character-detection/    # nested character-box evaluation view
-│   └── nakagawa-character-detection/    # supplied train/val/test split
+│   ├── nakagawa-character-detection/    # supplied train/val/test split
+│   ├── ids/                              # pinned Week 5 text resources
+│   │   ├── cjkvi/                        # raw/direct IDS references
+│   │   ├── nom-ids/                      # expanded IDS + ordered vocabulary
+│   │   └── manifest.json                 # source provenance and checksums
+│   └── nomnaocr-recognition-crops/       # one-page unlabeled inference crops
+│       └── <page>/
+│           ├── crops/
+│           ├── manifest.json
+│           └── manifest.tsv
 ├── models/
 ├── metrics/
 ├── predictions/
+│   └── <detector-run>/                    # complete Week 4 detector handoff
+│       ├── images/<relative-page>          # detector overlays
+│       ├── labels/<relative-page>.txt      # 6-field YOLO rows; empty if no box
+│       └── manifest.json                   # every processed page + model/settings
 └── logs/
 ```
 
@@ -53,4 +66,14 @@ of creating another copy.
   line label, and detection label in the sample.
 - Detection dataset views preserve document-relative paths, normalize every object to
   class `0` (`character`), and keep their generated `data.yaml` beside the manifest.
+- IDS resources retain the exact `nom-ids` vocabulary order used by the recognizer checkpoint;
+  never sort or regenerate that vocabulary.
+- Recognition crops retain detector box IDs and optional confidence, but no character identity.
+  Line transcriptions cannot label boxes safely before sequence alignment.
+- The Week 4 full detector run is the canonical recognition input. Its `labels/` tree mirrors
+  the source `images/` tree exactly and has an empty label file for every no-detection page;
+  recognition code must use `page_id` (the relative image path without its suffix) and the
+  zero-based row order as `box_id`.
+- Recognition YAML may expand `${LAB_WORKSPACE}` but must not hard-code a team identifier.
+  Checkpoints and the private, resolved configuration stay outside Git.
 - Refuse conflicting or partial destinations; do not silently overwrite them.

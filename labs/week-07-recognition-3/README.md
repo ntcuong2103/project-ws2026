@@ -1,4 +1,4 @@
-# Week 7 — Recognition III: Lab Tutorial
+# Week 7 — Recognition III: Build the Decoder and Run the Pipeline
 
 [← Back to course README](../../README.md) · Previous: [Week 6](../week-06-recognition-2/) · Next: [Week 8](../week-08-midterm/)
 
@@ -6,41 +6,39 @@
 
 ## Goals
 
-- Speed up decoding by deduplicating identical token sequences.
-- Map decoded IDS strings back to composed Unicode characters where possible.
-- Assemble the combined detection + recognition demo and prepare midterm slides.
+- Build greedy autoregressive decoding from the configured recognizer's next-token logits.
+- Deduplicate identical token sequences and map IDS strings back to Unicode candidates.
+- Run the full page → detector boxes → recognizer → decoder pipeline and prepare the midterm.
 
-## Starter kit (given)
+## Decoder contract
 
-None new.
+Start every sequence with `sos_idx`. At each step, call the supplied
+`next_token_logits(crops, prefixes)` primitive, choose the argmax token, append it to the
+prefix, and stop when the selected token is `eos_idx` or `max_length` is reached. Do not emit
+SOS or EOS as IDS tokens. Do not call the checkpoint's built-in `greedy_search` or beam search.
 
-## You implement
+Use the fixed fixtures to prove these cases exactly: a normal EOS-terminated sequence, immediate EOS,
+repeated emitted tokens, and an EOS-free sequence stopped by the maximum length.
 
-Deduplication of identical token sequences before decoding, and IDS→Unicode composition.
+## IDS composition and output contract
 
-## Small experiment
+Join emitted vocabulary tokens into an IDS string, then use the reverse expanded-IDS mapping.
+One IDS can map to multiple Unicode candidates; preserve the entire ordered candidate list.
+An IDS with no direct Unicode match must be reported with an empty candidate list, not discarded.
 
-Test both functions on a handful of hand-picked token sequences — including one repeated sequence and one IDS string with no direct Unicode match — with known expected outputs.
-
-## Tutorial steps
-
-1. Implement dedup: decode each unique sequence once, map results back to all boxes.
-2. Implement IDS→Unicode composition; decide what to return when there is no direct match.
-3. Validate both on the hand-picked examples.
-4. Run the full decode step on the team's subset: predicted text + IDS per box.
-5. Build the combined demo and draft the midterm slides.
+Write JSONL or TSV records with `page_id`, `box_id`, normalized and pixel boxes, detector
+confidence, raw token IDs, IDS string, and Unicode candidates. The Week 4 prediction manifest
+is the input contract, so every page is accounted for even if it has no detector boxes.
 
 ## Tasks
 
-- [ ] Implement sequence deduplication and IDS→Unicode composition
-- [ ] Validate both on the hand-picked examples
-- [ ] Run the full decode step on the team's subset to produce predicted text + IDS per box
-- [ ] Assemble a combined detection+recognition demo; draft midterm slides
+- [ ] Implement and exact-match test greedy decoding on all supplied fixtures.
+- [ ] Implement token-sequence deduplication and IDS→Unicode candidate lookup.
+- [ ] Run the full configured pipeline on the complete Week 4 detector handoff.
+- [ ] Inspect representative correct-looking, ambiguous, and unmatched IDS outputs.
+- [ ] Prepare the midterm materials using [the presentation rules](../../docs/MIDTERM-PRESENTATION.md).
 
 ## Deliverable
 
-Decoding module (validated on toy examples) + combined demo + midterm slide draft.
-
-## Materials
-
-_Add notebooks, scripts and fixtures for this lab in this folder._
+Greedy decoder with fixture tests, full per-box recognition output, a combined detection and
+recognition demo, and midterm slides. Do not commit predictions, weights, or private configs.

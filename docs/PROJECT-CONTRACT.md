@@ -30,3 +30,7 @@ outside implementation code. Do not commit datasets, checkpoints, predictions, l
 or secrets. The final README should state the environment, commands, input/output
 formats, and the location of each reported result.
 
+For recognition, a configuration should register the detector and recognizer checkpoints,
+IDS resources, full detector-label root, image root, output root, special-token IDs, and
+deterministic crop preprocessing. The full detector prediction manifest is the handoff
+between detection and recognition; do not duplicate the complete crop dataset.
