@@ -212,9 +212,34 @@ cd /home/projectgX/project-ws2026
 # Restore the persistent lab-output location in this shell.
 export LAB_WORKSPACE=/data/projectgX/lab-exercise
 
-# Start Jupyter and open the Week 1 visualization notebook.
-uv run jupyter lab labs/week-01-orientation/visualize_sample_page.ipynb
+# Start the Jupyter server without trying to launch a browser on the compute node.
+uv run jupyter lab --no-browser
 ```
+
+Jupyter prints connection details similar to these when the server starts inside the
+Slurm allocation:
+
+```text
+To access the server, open this file in a browser:
+    file:///home/minhttn/.local/share/jupyter/runtime/jpserver-1556813-open.html
+Or copy and paste one of these URLs:
+    http://localhost:8888/lab?token=d9f73e287cc33aecad551deb536f7354483064a06d6d8aac
+    http://127.0.0.1:8888/lab?token=d9f73e287cc33aecad551deb536f7354483064a06d6d8aac
+```
+
+The path and port may vary. By default, Jupyter also generates a new random token each
+time a server process starts. Use the URL printed by your current Jupyter process; do
+not reuse the example token above or a URL from an earlier server. In VS Code, open
+the notebook, click the kernel name in the top-right corner, select **Existing Jupyter
+Server...**, and paste the complete printed URL, including the `?token=...` query
+parameter. Do not enter only `http://localhost:8888`: without the current token,
+Jupyter cannot authenticate the connection and may respond with HTTP 403 Forbidden.
+The full URL connects the notebook to the Jupyter server running inside the Slurm job
+instead of starting a kernel outside the allocation. After connecting, open
+`labs/week-01-orientation/visualize_sample_page.ipynb` in VS Code and select the
+connected server as its kernel source.
+
+![VS Code kernel picker showing Existing Jupyter Server](images/select-existing-jupyter-server.png)
 
 For each page, confirm that the red line polygons cover complete transcribed lines and
 the cyan boxes localize individual characters. The cyan boxes are positions only; do
