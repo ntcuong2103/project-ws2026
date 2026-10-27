@@ -4,39 +4,79 @@
 
 **Session:** each group reviews Week 1 (5 min/group), then journal club and this lab.
 
-## Learning outcomes
+## Week 2 checklist
+
+- [ ] Read both required papers and answer the problem-clarification questions.
+- [ ] Agree on what the paper solves, why character-level annotation is needed, and what the team will reproduce.
+- [ ] Verify that the five-page sample prepared in Week 1 is available.
+- [ ] Run every notebook cell and retain its outputs.
+- [ ] Document the dataset structure, page/file counts, byte sizes, label format, and any discrepancies with the papers.
+- [ ] Inspect all five sample pages for degradation, layout, reading order, and transcription conventions.
+- [ ] Implement and sanity-check the four required edit-distance methods.
+- [ ] Interpret the five-page similarity matrices and explain what they do not measure.
+
+**Deliverable:** an executed EDA notebook with the team's observations and similarity
+interpretation, including a concise, evidence-based statement of the problem and the
+paper result that the team will reproduce.
+
+## Provided lab materials
+
+This lab provides a guided dataset-EDA and edit-distance notebook. It reuses the
+persistent five-page sample prepared in Week 1 and reads the full shared NomNaOCR
+dataset without modifying it.
+
+## 1. Understand the week's objectives
 
 By the end of the week, each team should be able to:
 
 - formulate the character-level annotation problem, including its inputs, available supervision, desired outputs, and evaluation criteria;
 - distinguish the NomNaOCR dataset contribution from the iterative radical-based annotation method;
-- state concrete project goals and non-goals, assign accountable team roles, and maintain a risk register;
+- explain why the available line-level supervision is insufficient for the paper's character-level task;
+- identify the paper's inputs, expected outputs, major processing stages, and evaluation evidence;
 - explain the NomNaOCR filesystem, size, image and label formats, page quality, layouts, and transcription conventions from evidence; and
 - implement and interpret character-level edit distances and normalized similarities on the five Week 1 pages.
 
-## Required reading
+## 2. Read and compare the papers
 
-Read both papers before completing the project charter:
+Read both papers before starting the notebook:
 
 1. H.-Q. Dang et al., “NomNaOCR: The First Dataset for Optical Character Recognition on Han-Nom Script,” *2022 RIVF International Conference on Computing and Communication Technologies*, pp. 476–481, 2022. [DOI: 10.1109/RIVF55975.2022.10013842](https://doi.org/10.1109/RIVF55975.2022.10013842).
 2. C. T. Nguyen et al., “Automated Character-Level Annotation for Historical Nom Documents via an Iterative Self-updating Radical-Based Recognizer,” *Document Analysis and Recognition — ICDAR 2026*, LNCS 16974, pp. 469–485. [DOI: 10.1007/978-3-032-36039-7_28](https://doi.org/10.1007/978-3-032-36039-7_28).
 
-As you read, prepare short answers to these questions:
+You can refer to this guide to read the papers: [How to read paper](https://web.stanford.edu/class/ee384m/Handouts/HowtoReadPaper.pdf)
 
-| Question | NomNaOCR paper | Automated-annotation paper |
-| --- | --- | --- |
-| What problem is formulated? | | |
-| What are the inputs and existing labels? | | |
-| What output does the work produce? | | |
-| What assumptions make the approach possible? | | |
-| How is success measured? | | |
-| What can fail or bias the result? | | |
+As you read, distinguish the dataset introduced by the first paper from the annotation
+problem and method presented by the second paper. The goal is not to propose a new
+research program: it is to understand what must be reproduced and why each part is
+necessary.
 
-Then write one synthesis sentence: **NomNaOCR gives us …, but the project must solve … because …**
+### Problem-clarification questions
 
-## Before the lab: recover the Week 1 sample if needed
+Answer each question in one to three sentences in Section 1 of the notebook. Cite a
+paper section, page number, figure, table, or notebook observation for factual claims.
 
-The notebook reuses the five persistent page pairs created in Week 1. Do not make a second ad-hoc copy. In a shell, replace `X` with the team's assigned group number, then run:
+1. What supervision does NomNaOCR provide, and what character-level information is
+   missing?
+2. Why is the missing character-level annotation needed, and why can it not be
+   obtained by directly assigning the characters in a line transcription to detected
+   boxes?
+3. What output does the automated-annotation paper construct, and how do character
+   detection, radical-based recognition, alignment, confidence estimation, and
+   iterative updating contribute to it?
+4. What result, metric, or observable behavior will the team compare with the paper
+   to judge whether the reproduction is faithful?
+
+Conclude with one synthesis statement:
+
+> NomNaOCR provides **[available supervision]**, but not **[missing supervision]**.
+> We therefore reproduce **[paper method/output]** because **[why it is necessary]**,
+> and we will compare **[evidence]** with the paper.
+
+## 3. Verify the Week 1 sample
+
+The notebook reuses the five persistent page pairs produced in Week 1. Do not create a
+second ad-hoc copy or repeat the preparation instructions here. Set the workspace path
+and check for the sample manifest:
 
 ```bash
 # Enter the lab repository.
@@ -45,35 +85,16 @@ cd /home/projectgX/project-ws2026
 # Set the persistent location for lab outputs.
 export LAB_WORKSPACE=/data/projectgX/lab-exercise
 
-# Create any missing output folders.
-mkdir -p "$LAB_WORKSPACE"/{datasets,models,predictions,logs}
-
-# Rebuild the Week 1 sample in a batch job and capture Slurm's response.
-submission=$(sbatch --parsable \
-  --export=ALL,LAB_WORKSPACE="$LAB_WORKSPACE" \
-  --output="$LAB_WORKSPACE/logs/%x-%j.out" \
-  --error="$LAB_WORKSPACE/logs/%x-%j.err" \
-  labs/week-01-orientation/prepare_sample.sbatch)
-
-# Extract the numeric job ID from the response.
-job_id=${submission%%;*}
-
-# Print the job ID for the checks below.
-echo "Submitted job $job_id"
-```
-
-The preparation job is safe to rerun: it validates and reuses an intact sample rather than overwriting it. After it finishes, check:
-
-```bash
-# Check whether the batch job completed successfully.
-sacct -j "$job_id" --format=JobID,State,Elapsed,ExitCode
-
-# Confirm that the sample manifest was created.
+# Confirm that the Week 1 sample manifest exists.
 test -f "$LAB_WORKSPACE/datasets/nomnaocr-sample/manifest.json" \
   && echo "five-page sample is ready"
 ```
 
-## Run the notebook
+If the confirmation is not printed, return to Week 1 and follow
+[Step 4: Create the persistent lab workspace](../week-01-orientation/#4-create-the-persistent-lab-workspace)
+and [Step 5: Prepare the sample with a CPU-only batch job](../week-01-orientation/#5-prepare-the-sample-with-a-cpu-only-batch-job).
+
+## 4. Run the notebook
 
 Start a short CPU-only allocation and launch Jupyter from the repository:
 
@@ -93,28 +114,18 @@ export LAB_WORKSPACE=/data/projectgX/lab-exercise
 uv run jupyter lab labs/week-02-foundations/nomnaocr_eda_and_edit_distance.ipynb
 ```
 
-The notebook only reads `/data/shared/project2026/nomnaocr`. It inventories the full dataset, inspects the five local sample pages in detail, visualizes line polygons, and computes pairwise similarities between the five page transcriptions.
+The notebook only reads `/data/shared/project2026/nomnaocr`. It inventories the full
+dataset, inspects the five local sample pages in detail, visualizes line polygons, and
+computes pairwise similarities between the five page transcriptions.
 
-## Lab tasks
+## 5. Complete and interpret the analysis
 
-- [ ] Complete the two-paper comparison and agree on a one-paragraph problem formulation.
-- [ ] Run every notebook cell and retain its outputs.
-- [ ] Draw the filesystem tree and explain how an image is paired with each available label file.
-- [ ] Record page/file counts and byte sizes. Reconcile your observed counts with the papers; do not silently “fix” a mismatch.
-- [ ] Inspect all five sample pages. Record at least one piece of evidence about degradation, layout, reading order, and label conventions per page.
-- [ ] Explain what the eight coordinate fields and final text field in a line label mean. Find and report any `?` labels or malformed rows.
-- [ ] Implement and sanity-check Hamming, Levenshtein, optimal-string-alignment Damerau–Levenshtein, and LCS-based distance/similarity.
-- [ ] Interpret the five-page similarity matrices. State why they do **not** measure visual similarity or model quality.
-- [ ] Complete the [project charter template](project-charter-template.md). Give every risk and goal an owner.
-
-## Deliverables
-
-1. The executed notebook, including the team's written EDA observations and similarity interpretation.
-2. A one-page project charter covering problem formulation, goals/non-goals, success measures, roles, risks, and immediate actions.
+Complete the notebook and record brief observations about the dataset structure,
+labels, and five sample pages. Compare the page transcriptions using the required edit
+distances, then explain what the results show and what they do not show.
 
 ## Materials
 
 - [`nomnaocr_eda_and_edit_distance.ipynb`](nomnaocr_eda_and_edit_distance.ipynb): guided EDA and edit-distance lab.
-- [`project-charter-template.md`](project-charter-template.md): one-page team charter scaffold.
 - [Week 1 sample preparation](../week-01-orientation/)
 - [Lab data contract](../../docs/DATA-CONTRACT.md)

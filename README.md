@@ -52,7 +52,7 @@ The table gives the overview; the per-week details (reading, provided materials,
 | Week | Phase | Topic & In-Class Focus | Lab / Studio Work | Deliverable | Lab |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Orientation | Course kickoff; journal-club read of the source paper; intro to Hán-Nôm OCR and IDS decomposition; team formation | Verify server and shared-data access; clone this lab repo; prepare the persistent 5-page sample with a CPU-only Slurm job; visualize it from an interactive allocation | Teams formed; environment and Slurm verified; five local sample pages visualized | [labs/week-01-orientation](labs/week-01-orientation/) |
-| 2 | Foundations | Two-paper problem formulation; NomNaOCR structure; character-level edit distance | Inventory the full dataset; audit five sample pages; compare page transcriptions; draft the project charter | Executed EDA notebook + project charter | [labs/week-02-foundations](labs/week-02-foundations/) |
+| 2 | Foundations | Two-paper problem formulation; NomNaOCR structure; character-level edit distance | Clarify the paper's problem and reproduction target; inventory the full dataset; audit five sample pages; compare page transcriptions | Executed EDA notebook with problem statement and reproduction target | [labs/week-02-foundations](labs/week-02-foundations/) |
 | 3 | Detection I | YOLOv11n architecture; annotation format; transfer learning from MTHv2 pretraining | Run given YOLO script on small MTHv2 sample; scale to full MTHv2; detect + visualize on NomNaOCR | Trained YOLO detector + detection output and visualizations on the whole NomNaOCR dataset | [labs/week-03-detection-1](labs/week-03-detection-1/) |
 | 4 | Detection II | Detection metrics (Precision/Recall/mAP@50); detector error modes (merges, splits, spurious/missed boxes) | Fine-tune MTHv2-pretrained YOLO on TUAT-Nakagawa; evaluate with ultralytics; tag errors | Fine-tuned detector + metrics report + error-analysis gallery | [labs/week-04-detection-2](labs/week-04-detection-2/) |
 | 5 | Recognition I | Ideographic Description Sequences (IDS); CHISE/cjkvi-ids dictionary; compositional character representation | Implement text→IDS mapping; validate on 5-char example; report vocabulary coverage; prepare crops | IDS decomposition utility + recognizer training set | [labs/week-05-recognition-1](labs/week-05-recognition-1/) |
@@ -115,18 +115,17 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 
 **Topic:** Problem formulation from the dataset and automated-annotation papers; NomNaOCR EDA; character-level edit distance and normalized similarity.
 **Reading:** Dang et al., "NomNaOCR: The First Dataset for Optical Character Recognition on Han-Nom Script," RIVF (2022); Nguyen et al., "Automated Character-Level Annotation for Historical Nom Documents via an Iterative Self-updating Radical-Based Recognizer," ICDAR (2026).
-**Starter kit (given):** full read-only NomNaOCR access, the persistent five-page Week 1 sample, a guided EDA/edit-distance notebook, and a project-charter template.
+**Starter kit (given):** full read-only NomNaOCR access, the persistent five-page Week 1 sample, and a guided EDA/edit-distance notebook.
 **Lab:** [labs/week-02-foundations](labs/week-02-foundations/)
 
 **Tasks:**
 
-- [ ] Compare the two papers and formulate the missing character-level annotation problem
+- [ ] Compare the two papers; explain the missing character-level supervision, why it is needed, and what paper result the team will reproduce
 - [ ] Inventory the full dataset's filesystem, counts, sizes, image formats, and label formats
 - [ ] Audit page quality, layout, reading order, and label conventions on all five Week 1 pages
 - [ ] Implement four edit distances and compute pairwise similarities for the five page transcriptions
-- [ ] Submit a one-page project charter with testable goals/non-goals, success criteria, roles, risks, owners, and immediate actions
 
-**Deliverable:** Executed EDA/edit-distance notebook and one-page project charter.
+**Deliverable:** Executed EDA/edit-distance notebook with an evidence-based problem statement and reproduction target.
 
 ### Week 3 — Detection I
 
