@@ -10,12 +10,17 @@ Replace `X` with the assigned group number.
 /home/projectgX/project-ws2026/       # cloned lab repository
 /data/projectgX/lab-exercise/
 ├── datasets/
-│   └── nomnaocr-sample/                 # durable Week 1 page triplets
-│       ├── images/
-│       ├── line_labels/
-│       ├── detection_labels/
-│       └── manifest.json
+│   ├── nomnaocr-sample/                 # durable Week 1 page triplets
+│   │   ├── images/
+│   │   ├── line_labels/
+│   │   ├── detection_labels/
+│   │   └── manifest.json
+│   ├── mth1000-practice/                # Week 3 same-data fitting check
+│   ├── mth1000-full/                    # deterministic 80/10/10 split
+│   ├── nomnaocr-character-detection/    # nested character-box evaluation view
+│   └── nakagawa-character-detection/    # supplied train/val/test split
 ├── models/
+├── metrics/
 ├── predictions/
 └── logs/
 ```
@@ -46,4 +51,6 @@ of creating another copy.
 - Keep relative page paths when copying matched images and labels.
 - A manifest records how a reusable sample was produced and checksums every image,
   line label, and detection label in the sample.
+- Detection dataset views preserve document-relative paths, normalize every object to
+  class `0` (`character`), and keep their generated `data.yaml` beside the manifest.
 - Refuse conflicting or partial destinations; do not silently overwrite them.
