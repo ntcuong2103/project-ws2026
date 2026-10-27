@@ -51,8 +51,8 @@ The table gives the overview; the per-week details (reading, provided materials,
 
 | Week | Phase | Topic & In-Class Focus | Lab / Studio Work | Deliverable | Lab |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Orientation | Course kickoff; journal-club read of the source paper; intro to Hán-Nôm OCR and IDS decomposition; team formation | Verify server and shared-data access; clone this lab repo; prepare the persistent 5-page sample with a CPU-only Slurm job; visualize it from an interactive allocation | Teams formed; environment and Slurm verified; five local sample pages visualized | [labs/week-01-orientation](labs/week-01-orientation/) |
-| 2 | Foundations | Two-paper problem formulation; NomNaOCR structure; character-level edit distance | Clarify the paper's problem and reproduction target; inventory the full dataset; audit five sample pages; compare page transcriptions | Executed EDA notebook with problem statement and reproduction target | [labs/week-02-foundations](labs/week-02-foundations/) |
+| 1 | Orientation | Course kickoff; journal-club read of the source paper; intro to Hán-Nôm OCR and IDS decomposition; team formation | Verify access; prepare five image/line-label/detection-label triplets; visualize line polygons and character boxes | Teams formed; environment verified; five sample triplets inspected and visualized | [labs/week-01-orientation](labs/week-01-orientation/) |
+| 2 | Foundations | Two-paper problem formulation; NomNaOCR structure; character-level edit distance | Explain how line supervision and character positions become pseudo ground truth; audit five sample triplets; compare page transcriptions | Executed EDA notebook with problem statement and pseudo-ground-truth pipeline explanation | [labs/week-02-foundations](labs/week-02-foundations/) |
 | 3 | Detection I | YOLOv11n architecture; annotation format; transfer learning from MTHv2 pretraining | Run given YOLO script on small MTHv2 sample; scale to full MTHv2; detect + visualize on NomNaOCR | Trained YOLO detector + detection output and visualizations on the whole NomNaOCR dataset | [labs/week-03-detection-1](labs/week-03-detection-1/) |
 | 4 | Detection II | Detection metrics (Precision/Recall/mAP@50); detector error modes (merges, splits, spurious/missed boxes) | Fine-tune MTHv2-pretrained YOLO on TUAT-Nakagawa; evaluate with ultralytics; tag errors | Fine-tuned detector + metrics report + error-analysis gallery | [labs/week-04-detection-2](labs/week-04-detection-2/) |
 | 5 | Recognition I | Ideographic Description Sequences (IDS); CHISE/cjkvi-ids dictionary; compositional character representation | Implement text→IDS mapping; validate on 5-char example; report vocabulary coverage; prepare crops | IDS decomposition utility + recognizer training set | [labs/week-05-recognition-1](labs/week-05-recognition-1/) |
@@ -95,7 +95,7 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 
 **Topic:** Course kickoff; journal-club read of the source paper; intro to Hán-Nôm OCR and IDS decomposition; team formation.
 **Reading:** Nguyen et al., "Confidence-Weighted Annotation of Historical Nôm Documents via IDS-Level Sequence Alignment," *PRL* (2026) — read in full.
-**Provided lab materials:** workspace rules, a reusable sample-data utility, and a notebook for inspecting and visualizing five NomNaOCR pages.
+**Provided lab materials:** workspace rules, a reusable sample-data utility, and a notebook for inspecting five NomNaOCR image/line-label/detection-label triplets.
 **Lab:** [labs/week-01-orientation](labs/week-01-orientation/)
 
 **Tasks:**
@@ -104,28 +104,29 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 - [ ] Clone this lab repository under `/home/projectgX`; run `uv sync`
 - [ ] Create `/data/projectgX/lab-exercise`; prepare its persistent sample using the provided CPU-only `sbatch` job
 - [ ] Inspect the Slurm job and its resource request
-- [ ] Visualize all five sample pages from a short CPU-only interactive allocation
+- [ ] Visualize line polygons and character-position boxes on all five sample pages from a short CPU-only interactive allocation
 - [ ] Read this repository's `AGENTS.md`
 - [ ] Read the paper's abstract + Figure 1; come ready to discuss
 - [ ] Form teams of 3–4 and submit the team roster
 
-**Deliverable:** Teams formed; environment and Slurm verified; five local sample pages loaded and visualized successfully.
+**Deliverable:** Teams formed; environment and Slurm verified; five local sample triplets loaded with both annotation levels and visualized successfully.
 
 ### Week 2 — Foundations
 
 **Topic:** Problem formulation from the dataset and automated-annotation papers; NomNaOCR EDA; character-level edit distance and normalized similarity.
 **Reading:** Dang et al., "NomNaOCR: The First Dataset for Optical Character Recognition on Han-Nom Script," RIVF (2022); Nguyen et al., "Automated Character-Level Annotation for Historical Nom Documents via an Iterative Self-updating Radical-Based Recognizer," ICDAR (2026).
-**Starter kit (given):** full read-only NomNaOCR access, the persistent five-page Week 1 sample, and a guided EDA/edit-distance notebook.
+**Starter kit (given):** full read-only NomNaOCR access, the persistent five-triplet Week 1 sample, and a guided EDA/edit-distance notebook.
 **Lab:** [labs/week-02-foundations](labs/week-02-foundations/)
 
 **Tasks:**
 
 - [ ] Compare the two papers; explain the missing character-level supervision, why it is needed, and what paper result the team will reproduce
+- [ ] Explain how character-position detection, box-to-line ordering, recognition/alignment, and confidence filtering convert line transcriptions into character-level pseudo ground truth
 - [ ] Inventory the full dataset's filesystem, counts, sizes, image formats, and label formats
-- [ ] Audit page quality, layout, reading order, and label conventions on all five Week 1 pages
+- [ ] Audit page quality, layout, reading order, line labels, and character-position boxes on all five Week 1 pages
 - [ ] Implement four edit distances and compute pairwise similarities for the five page transcriptions
 
-**Deliverable:** Executed EDA/edit-distance notebook with an evidence-based problem statement and reproduction target.
+**Deliverable:** Executed EDA/edit-distance notebook with an evidence-based problem statement, reproduction target, and explanation of the line-level-to-character-level pseudo-ground-truth pipeline.
 
 ### Week 3 — Detection I
 

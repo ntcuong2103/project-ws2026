@@ -11,29 +11,37 @@ from pathlib import Path
 
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".tif", ".tiff"}
 MANIFEST_NAME = "manifest.json"
-MANIFEST_VERSION = 1
+MANIFEST_VERSION = 2
 READ_ONLY_SHARED_ROOT = Path("/data/shared/project2026")
 
 
 @dataclass(frozen=True)
 class PagePair:
-    """An image and its matching line-label file."""
+    """An image and its matching line- and character-detection-label files."""
 
     image_path: Path
     label_path: Path
+    detection_label_path: Path
     relative_image: Path
     relative_label: Path
+    relative_detection_label: Path
 
 
 def discover_page_pairs(dataset_root: Path) -> list[PagePair]:
-    """Return matched page pairs in deterministic relative-path order."""
+    """Return complete page triplets in deterministic relative-path order."""
 
     dataset_root = dataset_root.resolve()
     image_root = dataset_root / "images"
     label_root = dataset_root / "line_labels"
-    if not image_root.is_dir() or not label_root.is_dir():
+    detection_label_root = dataset_root / "detection_labels"
+    if (
+        not image_root.is_dir()
+        or not label_root.is_dir()
+        or not detection_label_root.is_dir()
+    ):
         raise FileNotFoundError(
-            f"Expected images/ and line_labels/ directories under {dataset_root}"
+            "Expected images/, line_labels/, and detection_labels/ directories "
+            f"under {dataset_root}"
         )
 
     pairs = []
@@ -42,16 +50,25 @@ def discover_page_pairs(dataset_root: Path) -> list[PagePair]:
             continue
         relative_image = image_path.relative_to(image_root)
         relative_label = relative_image.with_suffix(".txt")
+        relative_detection_label = relative_label
         label_path = label_root / relative_label
-        if label_path.is_file():
+        detection_label_path = detection_label_root / relative_detection_label
+        if label_path.is_file() and detection_label_path.is_file():
             pairs.append(
-                PagePair(image_path, label_path, relative_image, relative_label)
+                PagePair(
+                    image_path,
+                    label_path,
+                    detection_label_path,
+                    relative_image,
+                    relative_label,
+                    relative_detection_label,
+                )
             )
     return pairs
 
 
 def prepare_sample(source: Path, destination: Path, size: int = 5) -> tuple[list[PagePair], bool]:
-    """Create or validate a deterministic sample.
+    """Create or validate a deterministic sample of complete page triplets.
 
     Returns ``(pairs, created)``. A valid existing sample is reused. Any partial,
     changed, or conflicting destination raises an error instead of being overwritten.
@@ -78,23 +95,33 @@ def prepare_sample(source: Path, destination: Path, size: int = 5) -> tuple[list
 
     source_pairs = discover_page_pairs(source)
     if len(source_pairs) < size:
-        raise RuntimeError(f"Found only {len(source_pairs)} matched page pairs; requested {size}")
+        noun = "triplet" if len(source_pairs) == 1 else "triplets"
+        raise RuntimeError(
+            f"Found only {len(source_pairs)} complete page {noun}; requested {size}"
+        )
     selected = source_pairs[:size]
 
     copied_entries = []
     for pair in selected:
         destination_image = destination / "images" / pair.relative_image
         destination_label = destination / "line_labels" / pair.relative_label
+        destination_detection_label = (
+            destination / "detection_labels" / pair.relative_detection_label
+        )
         destination_image.parent.mkdir(parents=True, exist_ok=True)
         destination_label.parent.mkdir(parents=True, exist_ok=True)
+        destination_detection_label.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(pair.image_path, destination_image)
         shutil.copy2(pair.label_path, destination_label)
+        shutil.copy2(pair.detection_label_path, destination_detection_label)
         copied_entries.append(
             {
                 "image": pair.relative_image.as_posix(),
                 "image_sha256": _sha256(destination_image),
-                "label": pair.relative_label.as_posix(),
-                "label_sha256": _sha256(destination_label),
+                "line_label": pair.relative_label.as_posix(),
+                "line_label_sha256": _sha256(destination_label),
+                "detection_label": pair.relative_detection_label.as_posix(),
+                "detection_label_sha256": _sha256(destination_detection_label),
             }
         )
 
@@ -124,21 +151,36 @@ def _validate_existing_sample(source: Path, destination: Path, size: int) -> lis
 
     entries = manifest.get("pairs")
     if not isinstance(entries, list) or len(entries) != size:
-        raise ValueError("Existing sample manifest has the wrong number of page pairs")
+        raise ValueError("Existing sample manifest has the wrong number of page triplets")
 
     for entry in entries:
         try:
             relative_image = _validated_relative_path(entry["image"])
-            relative_label = _validated_relative_path(entry["label"])
+            relative_label = _validated_relative_path(entry["line_label"])
+            relative_detection_label = _validated_relative_path(
+                entry["detection_label"]
+            )
             image_path = destination / "images" / relative_image
             label_path = destination / "line_labels" / relative_label
+            detection_label_path = (
+                destination / "detection_labels" / relative_detection_label
+            )
             expected_image_hash = entry["image_sha256"]
-            expected_label_hash = entry["label_sha256"]
+            expected_label_hash = entry["line_label_sha256"]
+            expected_detection_label_hash = entry["detection_label_sha256"]
         except (KeyError, TypeError) as exc:
             raise ValueError("Existing sample manifest contains a malformed entry") from exc
-        if not image_path.is_file() or not label_path.is_file():
+        if (
+            not image_path.is_file()
+            or not label_path.is_file()
+            or not detection_label_path.is_file()
+        ):
             raise ValueError("Existing sample is incomplete; a recorded file is missing")
-        if _sha256(image_path) != expected_image_hash or _sha256(label_path) != expected_label_hash:
+        if (
+            _sha256(image_path) != expected_image_hash
+            or _sha256(label_path) != expected_label_hash
+            or _sha256(detection_label_path) != expected_detection_label_hash
+        ):
             raise ValueError("Existing sample differs from its manifest")
 
     pairs = discover_page_pairs(destination)

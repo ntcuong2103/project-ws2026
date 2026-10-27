@@ -1,4 +1,4 @@
-"""Parsing helpers for NomNaOCR line-level annotations."""
+"""Parsing helpers for NomNaOCR line and character-position annotations."""
 
 from __future__ import annotations
 
@@ -12,6 +12,17 @@ class LineAnnotation:
 
     points: tuple[tuple[float, float], ...]
     text: str
+
+
+@dataclass(frozen=True)
+class DetectionAnnotation:
+    """One normalized YOLO character-position box without a character identity."""
+
+    class_id: int
+    x_center: float
+    y_center: float
+    width: float
+    height: float
 
 
 def parse_line_annotation(raw_line: str) -> LineAnnotation:
@@ -45,3 +56,43 @@ def read_line_annotations(path: Path) -> list[LineAnnotation]:
             raise ValueError(f"{path}:{line_number}: {exc}") from exc
     return annotations
 
+
+def parse_detection_annotation(raw_line: str) -> DetectionAnnotation:
+    """Parse a normalized ``class x_center y_center width height`` YOLO row."""
+
+    parts = raw_line.split()
+    if len(parts) != 5:
+        raise ValueError(f"Expected 5 YOLO fields, got {len(parts)}")
+    try:
+        class_id = int(parts[0])
+        x_center, y_center, width, height = (float(value) for value in parts[1:])
+    except ValueError as exc:
+        raise ValueError("Detection annotation contains a non-numeric field") from exc
+    if not (0 <= x_center <= 1 and 0 <= y_center <= 1):
+        raise ValueError("Detection center coordinates must be in [0, 1]")
+    if not (0 < width <= 1 and 0 < height <= 1):
+        raise ValueError("Detection width and height must be in (0, 1]")
+    if (
+        x_center - width / 2 < 0
+        or x_center + width / 2 > 1
+        or y_center - height / 2 < 0
+        or y_center + height / 2 > 1
+    ):
+        raise ValueError("Detection box extends outside the normalized image bounds")
+    return DetectionAnnotation(class_id, x_center, y_center, width, height)
+
+
+def read_detection_annotations(path: Path) -> list[DetectionAnnotation]:
+    """Read all non-empty character-position annotations from a YOLO label file."""
+
+    annotations = []
+    for line_number, raw_line in enumerate(
+        path.read_text(encoding="utf-8").splitlines(), start=1
+    ):
+        if not raw_line.strip():
+            continue
+        try:
+            annotations.append(parse_detection_annotation(raw_line))
+        except ValueError as exc:
+            raise ValueError(f"{path}:{line_number}: {exc}") from exc
+    return annotations

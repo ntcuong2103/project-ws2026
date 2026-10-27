@@ -13,10 +13,11 @@
 - [ ] Create `/data/projectgX/lab-exercise` and set `LAB_WORKSPACE`.
 - [ ] Submit the five-page sample preparation as a CPU-only `sbatch` job.
 - [ ] Inspect the job's requested resources, state, and output log.
-- [ ] Run the notebook inside a short CPU-only Slurm allocation and visualize all five pages.
+- [ ] Run the notebook inside a short CPU-only Slurm allocation and visualize line polygons and character-position boxes on all five pages.
 
 **Deliverable:** a working lab environment, a successful Slurm job, and five persistent
-sample pages whose line annotations the team has inspected and visualized.
+sample page triplets whose line annotations and character-position boxes the team has
+inspected and visualized.
 
 ## Provided lab materials
 
@@ -99,7 +100,7 @@ The complete layout and reuse rules are in the [lab data contract](../../docs/DA
 
 Submit the provided [`prepare_sample.sbatch`](prepare_sample.sbatch) from the repository
 root. The job requests CPU and memory but deliberately has no `--gres` option, because
-copying and validating five page pairs does not need a GPU. The partition is named
+copying and validating five page triplets does not need a GPU. The partition is named
 `gpu`, but a job receives a GPU only when it explicitly requests a GPU resource.
 
 ```bash
@@ -147,13 +148,20 @@ sacct -j "$job_id" --format=JobID,State,Elapsed,AllocCPUS,ReqMem,MaxRSS,ExitCode
 cat "$LAB_WORKSPACE/logs/week01-prepare-$job_id.out"
 ```
 
-The successful job creates or safely reuses:
+The successful job creates or safely reuses five complete page triplets. A page is
+eligible only when its image, line label, and detection label all exist at matching
+relative paths:
 
 ```text
 /data/projectgX/lab-exercise/datasets/nomnaocr-sample/images
 /data/projectgX/lab-exercise/datasets/nomnaocr-sample/line_labels
+/data/projectgX/lab-exercise/datasets/nomnaocr-sample/detection_labels
 /data/projectgX/lab-exercise/datasets/nomnaocr-sample/manifest.json
 ```
+
+The line labels provide quadrilateral regions and transcriptions. The detection labels
+provide normalized character-position boxes, but they do not say which character is in
+each box. The manifest records paths and checksums for every file in each triplet.
 
 It only reads `/data/shared/project2026/nomnaocr`. If access fails, contact Dr. Cường
 or TA Dương rather than changing permissions or writing into shared storage.
@@ -192,7 +200,7 @@ scontrol show job "$SLURM_JOB_ID"
 
 Run `exit` when finished so the resources are released immediately.
 
-## 7. Inspect and visualize the sample
+## 7. Inspect and visualize both annotation levels
 
 Inside the interactive allocation, return to the lab repository, restore the workspace
 variable if necessary, and start Jupyter:
@@ -208,13 +216,16 @@ export LAB_WORKSPACE=/data/projectgX/lab-exercise
 uv run jupyter lab labs/week-01-orientation/visualize_sample_page.ipynb
 ```
 
-For additional commands, GPU resource types, job states, cancellation, and efficiency
-checks, see the [Slurm Quick Guide](../../SLURM-QUICK-GUIDE.md).
+For each page, confirm that the red line polygons cover complete transcribed lines and
+the cyan boxes localize individual characters. The cyan boxes are positions only; do
+not interpret the class ID as a character identity. For additional commands, GPU
+resource types, job states, cancellation, and efficiency checks, see the
+[Slurm Quick Guide](../../SLURM-QUICK-GUIDE.md).
 
 ## Materials
 
 - [`prepare_sample.sbatch`](prepare_sample.sbatch): CPU-only Slurm job.
 - [`prepare_sample.py`](prepare_sample.py): thin command wrapper used by the job.
-- [`visualize_sample_page.ipynb`](visualize_sample_page.ipynb): sample inspection and polygon visualization.
+- [`visualize_sample_page.ipynb`](visualize_sample_page.ipynb): line-polygon and character-position-box visualization.
 - [Lab data contract](../../docs/DATA-CONTRACT.md)
 - [Optional team project contract](../../docs/PROJECT-CONTRACT.md)

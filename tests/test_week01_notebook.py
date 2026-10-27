@@ -19,10 +19,13 @@ def test_week01_notebook_reports_allocation_status(
     for index in range(5):
         image_path = sample_root / "images" / f"page-{index}.jpg"
         label_path = sample_root / "line_labels" / f"page-{index}.txt"
+        detection_label_path = sample_root / "detection_labels" / f"page-{index}.txt"
         image_path.parent.mkdir(parents=True, exist_ok=True)
         label_path.parent.mkdir(parents=True, exist_ok=True)
+        detection_label_path.parent.mkdir(parents=True, exist_ok=True)
         Image.new("RGB", (20, 30), "white").save(image_path)
         label_path.write_text("0,0,10,0,10,20,0,20,Nôm\n", encoding="utf-8")
+        detection_label_path.write_text("0 0.5 0.5 0.2 0.3\n", encoding="utf-8")
 
     monkeypatch.setenv("LAB_WORKSPACE", str(tmp_path / "lab-exercise"))
     monkeypatch.setenv("MPLBACKEND", "Agg")
@@ -42,10 +45,12 @@ def test_week01_notebook_reports_allocation_status(
     executed = NotebookClient(notebook, timeout=120, kernel_name="python3").execute(
         cwd=str(notebook_path.parents[2])
     )
-    first_code_cell = next(cell for cell in executed.cells if cell.cell_type == "code")
     output_text = "".join(
         output.get("text", "")
-        for output in first_code_cell.outputs
+        for cell in executed.cells
+        for output in cell.get("outputs", [])
         if output.output_type == "stream"
     )
     assert expected_status in output_text
+    assert "matched page triplets" in output_text
+    assert "character-position boxes" in output_text

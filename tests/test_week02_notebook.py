@@ -57,7 +57,7 @@ def test_week02_notebook_executes_on_five_page_fixture(
         for output in cell.get("outputs", [])
         if output.output_type == "stream"
     )
-    assert "Matched sample pairs: 5" in output_text
+    assert "Matched sample triplets: 5" in output_text
     assert "All distance sanity checks passed." in output_text
     assert "Normalized Levenshtein" in output_text
 
@@ -73,6 +73,6 @@ def test_week02_handout_includes_readings_and_sample_recovery_command() -> None:
     assert "NomNaOCR: The First Dataset" in handout
     assert "Automated Character-Level Annotation" in handout
     assert "prepare_sample.sbatch" in handout
-    assert "goals/non-goals" in handout
-    assert "roles" in handout
-    assert "risks" in handout
+    assert "character-position detection" in handout
+    assert "pseudo ground truth" in handout
+    assert "recognition/alignment" in handout

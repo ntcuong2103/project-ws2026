@@ -34,7 +34,7 @@ def main(argv: list[str] | None = None) -> int:
     destination = args.workspace / "datasets" / "nomnaocr-sample"
     pairs, created = prepare_sample(args.source, destination, args.size)
     action = "Created" if created else "Reused"
-    print(f"{action} {len(pairs)} page pairs at {destination.resolve()}")
+    print(f"{action} {len(pairs)} page triplets at {destination.resolve()}")
     for pair in pairs:
         print(pair.relative_image)
     return 0
@@ -42,4 +42,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
