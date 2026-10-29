@@ -7,15 +7,14 @@
 ## Week 2 checklist
 
 - [ ] Read both required papers and answer the problem-clarification questions.
-- [ ] Agree on what the paper solves, why character-level annotation is needed, and what the team will reproduce.
+- [ ] Understand what the paper solves, why character-level annotation is needed, and what the team will reproduce.
 - [ ] Verify that the five-page sample prepared in Week 1 is available.
 - [ ] Distinguish line-level transcription supervision from character-position detection boxes.
-- [ ] Explain the full line-level-to-character-level pseudo-ground-truth pipeline; do not implement it this week.
+- [ ] Understand the full line-level-to-character-level pseudo-ground-truth pipeline; do not implement it this week.
 - [ ] Run every notebook cell and retain its outputs.
-- [ ] Document the dataset structure, page/file counts, byte sizes, label format, and any discrepancies with the papers.
 - [ ] Inspect all five sample pages for degradation, layout, reading order, and transcription conventions.
 - [ ] Implement and sanity-check the four required edit-distance methods.
-- [ ] Interpret the five-page similarity matrices and explain what they do not measure.
+- [ ] Interpret the five-page similarity matrices.
 
 **Deliverable:** an executed EDA notebook with the team's observations and similarity
 interpretation, including a concise, evidence-based statement of the problem and an
@@ -28,21 +27,7 @@ This lab provides a guided dataset-EDA and edit-distance notebook. It reuses the
 five-page triplet sample prepared in Week 1 and reads the full shared NomNaOCR
 dataset without modifying it.
 
-## 1. Understand the week's objectives
-
-By the end of the week, each team should be able to:
-
-- formulate the character-level annotation problem, including its inputs, available supervision, desired outputs, and evaluation criteria;
-- distinguish the NomNaOCR dataset contribution from the iterative radical-based annotation method;
-- explain why the available line-level supervision is insufficient for the paper's character-level task;
-- explain that sampled detection labels localize characters but do not provide their identities;
-- explain, without implementing, how detection, box-to-line grouping and reading order,
-  recognition/alignment, and confidence filtering create character-level pseudo ground truth;
-- identify the paper's inputs, expected outputs, major processing stages, and evaluation evidence;
-- explain the NomNaOCR filesystem, size, image and label formats, page quality, layouts, and transcription conventions from evidence; and
-- implement and interpret character-level edit distances and normalized similarities on the five Week 1 pages.
-
-## 2. Read and compare the papers
+## 1. Read and compare the papers
 
 Read both papers before starting the notebook:
 
@@ -58,9 +43,6 @@ necessary.
 
 ### Problem-clarification questions
 
-Answer each question in one to three sentences in Section 1 of the notebook. Cite a
-paper section, page number, figure, table, or notebook observation for factual claims.
-
 1. What supervision does NomNaOCR provide, and what character-level information is
    missing?
 2. Why is the missing character-level annotation needed, and why can it not be
@@ -72,12 +54,6 @@ paper section, page number, figure, table, or notebook observation for factual c
 4. What result, metric, or observable behavior will the team compare with the paper
    to judge whether the reproduction is faithful?
 
-Conclude with one synthesis statement:
-
-> NomNaOCR provides **[available supervision]**, but not **[missing supervision]**.
-> We therefore reproduce **[paper method/output]** because **[why it is necessary]**,
-> and we will compare **[evidence]** with the paper.
-
 ### Pipeline story for Week 2
 
 Every team must be able to explain this sequence:
@@ -86,18 +62,9 @@ Every team must be able to explain this sequence:
 > → recognition/alignment with the line transcription → confidence filtering
 > → character box + character identity pseudo ground truth
 
-NomNaOCR's line-level annotation supplies a region and transcription for each line.
-Character-position detection supplies boxes but not identities. Grouping and ordering
-place boxes into a line sequence; recognition proposes characters; sequence alignment
-matches those proposals to the line transcription without assuming every box and
-transcribed character correspond perfectly; confidence filtering retains reliable
-matches as pseudo ground truth. This week is explanatory only. Students do not
-implement grouping, recognition/alignment, or pseudo-label generation yet.
+## 2. Verify the Week 1 sample
 
-## 3. Verify the Week 1 sample
-
-The notebook reuses the five persistent page triplets produced in Week 1. Do not create a
-second ad-hoc copy or repeat the preparation instructions here. Set the workspace path
+The notebook reuses the five persistent page triplets produced in Week 1. Set the workspace path
 and check for the sample manifest:
 
 ```bash
@@ -117,7 +84,7 @@ If the confirmation is not printed, return to Week 1 and follow
 and [Step 5: Prepare the sample with a CPU-only batch job](../week-01-orientation/#5-prepare-the-sample-with-a-cpu-only-batch-job),
 which submits [`prepare_sample.sbatch`](../week-01-orientation/prepare_sample.sbatch).
 
-## 4. Run the notebook
+## 3. Run the notebook
 
 Start a short CPU-only allocation and launch Jupyter from the repository:
 
@@ -142,7 +109,7 @@ dataset, inspects the five local sample triplets in detail, visualizes line poly
 alongside character-position boxes, and computes pairwise similarities between the
 five page transcriptions.
 
-## 5. Complete and interpret the analysis
+## 4. Complete and interpret the analysis
 
 Complete the notebook and record brief observations about the dataset structure,
 labels, and five sample pages. Compare the page transcriptions using the required edit
