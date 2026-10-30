@@ -223,8 +223,8 @@ Slurm allocation:
 To access the server, open this file in a browser:
     file:///home/minhttn/.local/share/jupyter/runtime/jpserver-1556813-open.html
 Or copy and paste one of these URLs:
-    http://localhost:8888/lab?token=d9f73e287cc33aecad551deb536f7354483064a06d6d8aac
-    http://127.0.0.1:8888/lab?token=d9f73e287cc33aecad551deb536f7354483064a06d6d8aac
+    http://localhost:8888/lab?token=xxx
+    http://127.0.0.1:8888/lab?token=xxx
 ```
 
 The path and port may vary. By default, Jupyter also generates a new random token each
@@ -235,9 +235,7 @@ Server...**, and paste the complete printed URL, including the `?token=...` quer
 parameter. Do not enter only `http://localhost:8888`: without the current token,
 Jupyter cannot authenticate the connection and may respond with HTTP 403 Forbidden.
 The full URL connects the notebook to the Jupyter server running inside the Slurm job
-instead of starting a kernel outside the allocation. After connecting, open
-`labs/week-01-orientation/visualize_sample_page.ipynb` in VS Code and select the
-connected server as its kernel source.
+instead of starting a kernel outside the allocation. 
 
 ![VS Code kernel picker showing Existing Jupyter Server](images/select-existing-jupyter-server.png)
 
