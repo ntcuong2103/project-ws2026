@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import json
+import shutil
+import zipfile
+from io import BytesIO
 from pathlib import Path
 
 import pytest
@@ -9,9 +12,13 @@ from PIL import Image
 from nom_ocr_lab.detection import (
     convert_xyxy_label,
     normalize_yolo_label,
+    prepare_mth_course_dataset,
     prepare_mth1000,
+    prepare_nomnaocr_archive,
     prepare_yolo_view,
     split_pairs,
+    stage_mth_practice_sample,
+    validate_mth_practice_dataset,
 )
 from nom_ocr_lab.detection_visualization import (
     Box,
@@ -26,6 +33,7 @@ from nom_ocr_lab.detection_metrics import (
     parse_iou_thresholds,
 )
 from nom_ocr_lab.evaluate_detection_predictions import main as evaluate_predictions_main
+from nom_ocr_lab.run_detector import build_parser as build_detector_parser
 
 
 def make_mth1000(root: Path, count: int = 30) -> Path:
@@ -79,6 +87,17 @@ def test_pixel_conversion_forces_single_class(tmp_path: Path) -> None:
     )
 
 
+def test_detector_training_exposes_reproducible_optional_tuning_controls() -> None:
+    args = build_detector_parser().parse_args(
+        ["train", "--data", "data.yaml", "--name", "run"]
+    )
+
+    assert args.seed == 2026
+    assert args.optimizer == "auto"
+    assert args.lr0 == pytest.approx(0.01)
+    assert args.mosaic == pytest.approx(1.0)
+
+
 @pytest.mark.parametrize(
     "row, message",
     [
@@ -127,6 +146,93 @@ def test_full_split_is_deterministic_exhaustive_and_disjoint(tmp_path: Path) -> 
     assert all_label_rows_start_with_zero(tmp_path / "first" / "labels")
 
 
+def test_mth_practice_staging_is_deterministic_and_raw(tmp_path: Path) -> None:
+    train_source = make_mth1000(tmp_path / "mth1200", count=30)
+    test_source = make_mth1000(tmp_path / "mth1000", count=10)
+
+    first = stage_mth_practice_sample(train_source, test_source, tmp_path / "first")
+    second = stage_mth_practice_sample(train_source, test_source, tmp_path / "second")
+
+    assert first["splits"] == {"train": 18, "val": 2, "test": 4}
+    assert first["entries"] == second["entries"]
+    assert len(first["entries"]) == 24
+    assert sum(entry["collection"] == "mth1200" for entry in first["entries"]) == 20
+    assert sum(entry["collection"] == "mth1000" for entry in first["entries"]) == 4
+    raw = next((tmp_path / "first/mth1200/label_char").rglob("*.txt"))
+    assert raw.read_text(encoding="utf-8").startswith("17 ")
+
+
+def _organize_practice(stage: Path, destination: Path, manifest: dict[str, object]) -> None:
+    for entry in manifest["entries"]:
+        split = entry["suggested_split"]
+        collection = entry["collection"]
+        relative = Path(entry["image"])
+        source_image = stage / collection / "images" / relative
+        source_label = stage / collection / "label_char" / relative.with_suffix(".txt")
+        image_out = destination / "images" / split / relative
+        label_out = destination / "labels" / split / relative.with_suffix(".txt")
+        image_out.parent.mkdir(parents=True, exist_ok=True)
+        label_out.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source_image, image_out)
+        with Image.open(source_image) as image:
+            label_out.write_text(
+                convert_xyxy_label(
+                    source_label, image_width=image.width, image_height=image.height
+                ),
+                encoding="utf-8",
+            )
+    (destination / "data.yaml").write_text(
+        f"path: {destination.resolve()}\n"
+        "train: images/train\nval: images/val\ntest: images/test\n"
+        "nc: 1\nnames:\n  0: character\n",
+        encoding="utf-8",
+    )
+
+
+def test_practice_validator_checks_structure_labels_and_manifest(tmp_path: Path) -> None:
+    train_source = make_mth1000(tmp_path / "mth1200", count=30)
+    test_source = make_mth1000(tmp_path / "mth1000", count=10)
+    stage = tmp_path / "stage"
+    manifest = stage_mth_practice_sample(train_source, test_source, stage)
+    dataset = tmp_path / "practice"
+    _organize_practice(stage, dataset, manifest)
+
+    result = validate_mth_practice_dataset(dataset, stage / "manifest.json")
+
+    assert result == {
+        "valid": True,
+        "size": 24,
+        "splits": {"train": 18, "val": 2, "test": 4},
+    }
+
+    first_label = next((dataset / "labels/train").rglob("*.txt"))
+    first_label.write_text(
+        first_label.read_text(encoding="utf-8").replace("0 ", "7 ", 1),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="class must be 0"):
+        validate_mth_practice_dataset(dataset, stage / "manifest.json")
+
+
+def test_course_mth_uses_train_source_for_90_10_and_all_test_source(tmp_path: Path) -> None:
+    train_source = make_mth1000(tmp_path / "mth1200", count=30)
+    test_source = make_mth1000(tmp_path / "mth1000", count=10)
+
+    first = prepare_mth_course_dataset(
+        train_source, test_source, tmp_path / "first", materialize="copy"
+    )
+    second = prepare_mth_course_dataset(
+        train_source, test_source, tmp_path / "second", materialize="copy"
+    )
+
+    assert first["splits"] == {"train": 27, "val": 3, "test": 10}
+    assert first["entries"] == second["entries"]
+    assert {entry["collection"] for entry in first["entries"] if entry["split"] == "test"} == {
+        "mth1000"
+    }
+    assert all_label_rows_start_with_zero(tmp_path / "first/labels")
+
+
 def test_split_pairs_requires_enough_pages(tmp_path: Path) -> None:
     source = make_mth1000(tmp_path / "source", count=9)
     from nom_ocr_lab.detection import discover_detection_pairs
@@ -161,6 +267,42 @@ def test_nomnaocr_view_preserves_nested_document_paths(tmp_path: Path) -> None:
     assert (output / "images/test/Book A/page-1.jpg").is_file()
     assert (output / "labels/test/Book B/volume/page-2.txt").is_file()
     assert all_label_rows_start_with_zero(output / "labels")
+
+
+def _image_bytes() -> bytes:
+    buffer = BytesIO()
+    Image.new("RGB", (40, 60), "white").save(buffer, format="JPEG")
+    return buffer.getvalue()
+
+
+def test_nomnaocr_archive_combines_partitions_without_filename_collisions(
+    tmp_path: Path,
+) -> None:
+    archive = tmp_path / "nomnaocr.zip"
+    with zipfile.ZipFile(archive, "w") as bundle:
+        for partition in ("train", "valid"):
+            bundle.writestr(f"{partition}/images/page.jpg", _image_bytes())
+            bundle.writestr(
+                f"{partition}/labels/page.txt",
+                "2539 0.5 0.5 0.2 0.3\n",
+            )
+
+    manifest = prepare_nomnaocr_archive(archive, tmp_path / "prepared")
+
+    assert manifest["splits"] == {"test": 2}
+    assert (tmp_path / "prepared/images/test/train/page.jpg").is_file()
+    assert (tmp_path / "prepared/images/test/valid/page.jpg").is_file()
+    assert all_label_rows_start_with_zero(tmp_path / "prepared/labels")
+    assert "test: images/test" in (tmp_path / "prepared/data.yaml").read_text()
+
+
+def test_nomnaocr_archive_rejects_missing_labels(tmp_path: Path) -> None:
+    archive = tmp_path / "bad.zip"
+    with zipfile.ZipFile(archive, "w") as bundle:
+        bundle.writestr("test/images/page.jpg", _image_bytes())
+
+    with pytest.raises(ValueError, match="no matching label"):
+        prepare_nomnaocr_archive(archive, tmp_path / "prepared")
 
 
 def test_nakagawa_view_uses_supplied_disjoint_splits(tmp_path: Path) -> None:
@@ -389,27 +531,27 @@ def test_week3_handout_is_explicitly_single_class() -> None:
     handout = (
         Path(__file__).parents[1] / "labs/week-03-detection-1/README.md"
     ).read_text(encoding="utf-8")
-    assert "find every individual character" in handout
     assert "class `0`" in handout
-    assert "Do **not** use `nomnaocr/line_labels`" in handout
-    assert "same-data fitting metrics" in handout
-    assert "80% train, 10% validation, and 10% test" in handout
+    assert "18 MTH1200 pages" in handout
+    assert "2 MTH1200 pages" in handout
+    assert "4 MTH1000 pages" in handout
+    assert "1,080" in handout and "120 MTH1200" in handout
+    assert "canonical" in handout and "MTHv2 research split" in handout
     assert "python -m nom_ocr_lab.prepare_detection_data" in handout
     assert "box_loss" in handout
     assert "last.pt" in handout
-    assert "--selection all" in handout
-    assert "imgsz=640" in handout and "imgsz=1280" in handout
+    assert "sbatch" in handout
+    assert "not a target" in handout
 
 
 def test_week4_handout_uses_week3_checkpoint_and_shared_source_tools() -> None:
     handout = (
         Path(__file__).parents[1] / "labs/week-04-detection-2/README.md"
     ).read_text(encoding="utf-8")
-    assert "Do not restart from COCO weights" in handout
-    assert "Precision = TP / (TP + FP)" in handout
-    assert "python -m nom_ocr_lab.compare_detection_metrics" in handout
-    assert "python -m nom_ocr_lab.build_detection_gallery" in handout
-    assert "python -m nom_ocr_lab.evaluate_detection_predictions" in handout
-    assert "class_mapping.txt" in handout
-    assert "NMS" in handout
-    assert "101-point" in handout
+    assert "week03-mth1200/weights/best.pt" in handout
+    assert "prepare-nakagawa" in handout
+    assert "prepare-nomnaocr-archive" in handout
+    assert "Reference only — not a reproduction target" in handout
+    assert "0.9875" in handout and "0.9674" in handout
+    assert "sbatch" in handout
+    assert "Do not expect your values to match" in handout

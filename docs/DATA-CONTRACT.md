@@ -15,14 +15,11 @@ Replace `X` with the assigned group number.
 │   │   ├── line_labels/
 │   │   ├── detection_labels/
 │   │   └── manifest.json
-│   ├── mth1000-practice/                # Week 3 same-data fitting check
-│   ├── mth1000-full/                    # deterministic 80/10/10 split
-│   ├── nomnaocr-character-detection/    # nested character-box evaluation view
+│   ├── week03-source-sample/             # copied raw MTH labels for hands-on organization
+│   ├── mth-practice/                     # student-built 18/2/4 YOLO structure
+│   ├── mth-course-full/                  # MTH1200 90/10 train/val + MTH1000 test
+│   ├── nomnaocr-character-detection/     # external Roboflow archive as one test view
 │   ├── nakagawa-character-detection/    # supplied train/val/test split
-│   ├── ids/                              # pinned Week 5 text resources
-│   │   ├── cjkvi/                        # raw/direct IDS references
-│   │   ├── nom-ids/                      # expanded IDS + ordered vocabulary
-│   │   └── manifest.json                 # source provenance and checksums
 │   └── nomnaocr-recognition-crops/       # one-page unlabeled inference crops
 │       └── <page>/
 │           ├── crops/
@@ -66,8 +63,14 @@ of creating another copy.
   line label, and detection label in the sample.
 - Detection dataset views preserve document-relative paths, normalize every object to
   class `0` (`character`), and keep their generated `data.yaml` beside the manifest.
-- IDS resources retain the exact `nom-ids` vocabulary order used by the recognizer checkpoint;
-  never sort or regenerate that vocabulary.
+- The Week 3 course protocol uses only MTH1200 for training and validation; MTH1000 remains
+  an untouched test collection. This teaching split is not the canonical MTHv2 paper split.
+- `week03-source-sample` contains copied raw labels. Students organize and convert them into
+  `mth-practice`; the validator enforces 18 MTH1200 train, 2 MTH1200 validation, and 4
+  MTH1000 test pages.
+- The repository's `nom-ids/` directory contains the exact expanded-IDS mapping and vocabulary
+  order used by the recognizer checkpoint; never sort, regenerate, or copy either file into
+  generated workspace data.
 - Recognition crops retain detector box IDs and optional confidence, but no character identity.
   Line transcriptions cannot label boxes safely before sequence alignment.
 - The Week 4 full detector run is the canonical recognition input. Its `labels/` tree mirrors

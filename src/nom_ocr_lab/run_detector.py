@@ -38,6 +38,10 @@ def build_parser() -> argparse.ArgumentParser:
     train.add_argument("--patience", type=int, default=10)
     train.add_argument("--device", default="0")
     train.add_argument("--max-det", type=int, default=1000)
+    train.add_argument("--seed", type=int, default=2026)
+    train.add_argument("--optimizer", default="auto")
+    train.add_argument("--lr0", type=float, default=0.01)
+    train.add_argument("--mosaic", type=float, default=1.0)
 
     evaluate = commands.add_parser("evaluate")
     evaluate.add_argument("--data", type=Path, required=True)
@@ -117,7 +121,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "train":
         output_root = args.output_root or _default_artifact_root("models")
-        _refuse_nonempty_run(output_root, args.name)
+        run_root = _refuse_nonempty_run(output_root, args.name)
         model = YOLO(args.model)
         model.train(
             data=str(args.data),
@@ -131,7 +135,19 @@ def main(argv: list[str] | None = None) -> int:
             name=args.name,
             save=True,
             max_det=args.max_det,
+            seed=args.seed,
+            optimizer=args.optimizer,
+            lr0=args.lr0,
+            mosaic=args.mosaic,
+            plots=True,
         )
+        missing = [
+            path.relative_to(run_root).as_posix()
+            for path in (run_root / "weights/best.pt", run_root / "weights/last.pt")
+            if not path.is_file()
+        ]
+        if missing:
+            raise SystemExit(f"Training finished without required artifacts: {missing}")
         return 0
 
     if args.command == "evaluate":

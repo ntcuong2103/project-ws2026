@@ -6,7 +6,14 @@ import argparse
 import os
 from pathlib import Path
 
-from .detection import prepare_mth1000, prepare_yolo_view
+from .detection import (
+    convert_mth_label,
+    prepare_mth_course_dataset,
+    prepare_nomnaocr_archive,
+    prepare_yolo_view,
+    stage_mth_practice_sample,
+    validate_mth_practice_dataset,
+)
 
 
 def _workspace_output(name: str) -> Path:
@@ -20,60 +27,95 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    mth = subparsers.add_parser("mth1000", help="Convert MTH1000 label_char data")
-    mth.add_argument("--source", type=Path, required=True)
-    mth.add_argument("--output", type=Path)
-    mth.add_argument("--mode", choices=("practice", "full"), required=True)
-    mth.add_argument("--sample-size", type=int, default=24)
-    mth.add_argument("--seed", type=int, default=2026)
-    mth.add_argument("--materialize", choices=("symlink", "copy"), default="symlink")
+    stage = subparsers.add_parser(
+        "stage-mth-practice", help="Copy the fixed raw-label Week 3 sample"
+    )
+    stage.add_argument("--train-source", type=Path, required=True)
+    stage.add_argument("--test-source", type=Path, required=True)
+    stage.add_argument("--output", type=Path)
+    stage.add_argument("--seed", type=int, default=2026)
 
-    nom = subparsers.add_parser("nomnaocr", help="Build a YOLO view of NomNaOCR")
-    nom.add_argument("--source", type=Path, required=True)
-    nom.add_argument("--output", type=Path)
-    nom.add_argument("--materialize", choices=("symlink", "copy"), default="symlink")
+    convert = subparsers.add_parser(
+        "convert-mth-label", help="Convert one raw MTH label to YOLO format"
+    )
+    convert.add_argument("--image", type=Path, required=True)
+    convert.add_argument("--label", type=Path, required=True)
+    convert.add_argument("--output", type=Path, required=True)
 
-    nakagawa = subparsers.add_parser("nakagawa", help="Build a split YOLO view of Nakagawa")
+    validate = subparsers.add_parser(
+        "validate-mth-practice", help="Validate the student-organized 18/2/4 dataset"
+    )
+    validate.add_argument("--dataset", type=Path, required=True)
+    validate.add_argument("--source-manifest", type=Path)
+
+    full = subparsers.add_parser(
+        "prepare-mth-full", help="Prepare MTH1200 train/val and MTH1000 test"
+    )
+    full.add_argument("--train-source", type=Path, required=True)
+    full.add_argument("--test-source", type=Path, required=True)
+    full.add_argument("--output", type=Path)
+    full.add_argument("--seed", type=int, default=2026)
+    full.add_argument("--materialize", choices=("symlink", "copy"), default="symlink")
+
+    nakagawa = subparsers.add_parser(
+        "prepare-nakagawa", help="Build a split YOLO view of Nakagawa"
+    )
     nakagawa.add_argument("--source", type=Path, required=True)
     nakagawa.add_argument("--output", type=Path)
     nakagawa.add_argument("--materialize", choices=("symlink", "copy"), default="symlink")
+
+    nom = subparsers.add_parser(
+        "prepare-nomnaocr-archive", help="Prepare the Roboflow ZIP as an external test set"
+    )
+    nom.add_argument("--archive", type=Path, required=True)
+    nom.add_argument("--output", type=Path)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    if args.command == "mth1000":
-        output = args.output or _workspace_output(f"mth1000-{args.mode}")
-        manifest = prepare_mth1000(
-            args.source,
+    if args.command == "stage-mth-practice":
+        output = args.output or _workspace_output("week03-source-sample")
+        result = stage_mth_practice_sample(
+            args.train_source, args.test_source, output, seed=args.seed
+        )
+    elif args.command == "convert-mth-label":
+        boxes = convert_mth_label(args.image, args.label, args.output)
+        print(f"Converted {boxes} boxes to {args.output.resolve()}")
+        return 0
+    elif args.command == "validate-mth-practice":
+        source_manifest = args.source_manifest or (
+            _workspace_output("week03-source-sample") / "manifest.json"
+        )
+        result = validate_mth_practice_dataset(args.dataset, source_manifest)
+        output = args.dataset
+    elif args.command == "prepare-mth-full":
+        output = args.output or _workspace_output("mth-course-full")
+        result = prepare_mth_course_dataset(
+            args.train_source,
+            args.test_source,
             output,
-            mode=args.mode,
-            sample_size=args.sample_size,
             seed=args.seed,
             materialize=args.materialize,
         )
-    elif args.command == "nomnaocr":
+    elif args.command == "prepare-nomnaocr-archive":
         output = args.output or _workspace_output("nomnaocr-character-detection")
-        manifest = prepare_yolo_view(
-            args.source,
-            output,
-            label_dir="detection_labels",
-            materialize=args.materialize,
-        )
+        result = prepare_nomnaocr_archive(args.archive, output)
     else:
         output = args.output or _workspace_output("nakagawa-character-detection")
         split_files = {
             split: args.source / f"{split}.txt" for split in ("train", "val", "test")
         }
-        manifest = prepare_yolo_view(
+        result = prepare_yolo_view(
             args.source,
             output,
             label_dir="labels",
             split_files=split_files,
             materialize=args.materialize,
         )
-    print(f"Prepared {manifest['size']} paired pages at {output.resolve()}")
-    print(f"Splits: {manifest['splits']}")
+    action = "Validated" if args.command == "validate-mth-practice" else "Prepared"
+    print(f"{action} {result['size']} paired pages at {output.resolve()}")
+    print(f"Splits: {result['splits']}")
     return 0
 
 
