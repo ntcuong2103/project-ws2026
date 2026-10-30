@@ -2,6 +2,8 @@
 
 [← Back to course README](../../README.md) · Next: [Week 2](../week-02-foundations/)
 
+> **Interactive Slurm reminder:** Whenever you use `srun --pty ...`, run `exit` as soon as you finish. This releases the allocation; do not leave an interactive session idle.
+
 **Session:** no previous-week review (kickoff). Intro + journal club, then this lab.
 
 ## Week 1 checklist

@@ -60,6 +60,7 @@ def test_week02_notebook_executes_on_five_page_fixture(
     assert "Matched sample triplets: 5" in output_text
     assert "All distance sanity checks passed." in output_text
     assert "Can transcription characters be zipped directly to detector boxes?" in output_text
+    assert "OCR-style examples (the changed span is bracketed)" in output_text
     assert "OCR-style transcription comparisons" in output_text
     assert "Normalized Levenshtein" in output_text
 

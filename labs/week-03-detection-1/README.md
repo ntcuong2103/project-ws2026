@@ -2,6 +2,8 @@
 
 [← Back to course README](../../README.md) · [Slurm guide](../../SLURM-QUICK-GUIDE.md) · [Week 4 →](../week-04-detection-2/)
 
+> **Interactive Slurm reminder:** Whenever you use `srun --pty ...`, run `exit` as soon as you finish. This releases the allocation; do not leave an interactive session idle.
+
 This week has one task: **find every individual character and draw one bounding box around it**.
 The detector does not identify characters. Every box therefore has class `0`, named
 `character`. Line detection and character recognition are out of scope.

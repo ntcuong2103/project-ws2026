@@ -2,6 +2,8 @@
 
 [← Back to course README](../../README.md) · Previous: [Week 14](../week-14-integration/)
 
+> **Interactive Slurm reminder:** Whenever you use `srun --pty ...`, run `exit` as soon as you finish. This releases the allocation; do not leave an interactive session idle.
+
 **Session:** this week replaces the review + lab format with final team presentations (~20 min + Q&A/demo per team).
 
 ## Content to cover

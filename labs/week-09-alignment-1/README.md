@@ -2,6 +2,8 @@
 
 [← Back to course README](../../README.md) · Previous: [Week 8](../week-08-midterm/) · Next: [Week 10](../week-10-alignment-2/)
 
+> **Interactive Slurm reminder:** Whenever you use `srun --pty ...`, run `exit` as soon as you finish. This releases the allocation; do not leave an interactive session idle.
+
 **Session:** each group reviews Week 7 and the midterm feedback (5 min/group), then this lab.
 
 ## Goals

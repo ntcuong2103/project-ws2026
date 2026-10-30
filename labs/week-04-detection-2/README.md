@@ -2,6 +2,8 @@
 
 [← Week 3](../week-03-detection-1/) · [Back to course README](../../README.md) · [Week 5 →](../week-05-recognition-1/)
 
+> **Interactive Slurm reminder:** Whenever you use `srun --pty ...`, run `exit` as soon as you finish. This releases the allocation; do not leave an interactive session idle.
+
 Week 4 starts from the MTH1000 `best.pt` produced in Week 3. You will fine-tune it on
 TUAT-Nakagawa, calculate character-level detection metrics, and determine whether adaptation
 improves NomNaOCR. Do not restart from COCO weights.

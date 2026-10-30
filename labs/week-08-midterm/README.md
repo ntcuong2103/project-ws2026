@@ -2,6 +2,8 @@
 
 [← Back to course README](../../README.md) · Previous: [Week 7](../week-07-recognition-3/) · Next: [Week 9](../week-09-alignment-1/)
 
+> **Interactive Slurm reminder:** Whenever you use `srun --pty ...`, run `exit` as soon as you finish. This releases the allocation; do not leave an interactive session idle.
+
 **Session:** this week replaces the review + lab format with team presentations (~15 min + Q&A per team).
 
 Read the complete [midterm presentation rules](../../docs/MIDTERM-PRESENTATION.md).

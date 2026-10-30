@@ -2,6 +2,8 @@
 
 [← Back to course README](../../README.md) · Previous: [Week 4](../week-04-detection-2/) · Next: [Week 6](../week-06-recognition-2/)
 
+> **Interactive Slurm reminder:** Whenever you use `srun --pty ...`, run `exit` as soon as you finish. This releases the allocation; do not leave an interactive session idle.
+
 **Session:** each group reviews Week 4 (5 min/group), then completes this lab.
 
 ## Goals
