@@ -9,12 +9,13 @@
 - [ ] Read both required papers and answer the problem-clarification questions.
 - [ ] Understand what the paper solves, why character-level annotation is needed, and what the team will reproduce.
 - [ ] Verify that the five-page sample prepared in Week 1 is available.
-- [ ] Distinguish line-level transcription supervision from character-position detection boxes.
+- [ ] Distinguish line supervision from pretrained-detector reference output.
 - [ ] Understand the full line-level-to-character-level pseudo-ground-truth pipeline; do not implement it this week.
 - [ ] Run every notebook cell and retain its outputs.
+- [ ] Audit pairing and labels; explain what would fail downstream if a check were skipped.
 - [ ] Inspect all five sample pages for degradation, layout, reading order, and transcription conventions.
 - [ ] Implement and sanity-check the four required edit-distance methods.
-- [ ] Interpret the five-page similarity matrices.
+- [ ] Interpret OCR-style transcription errors with the four distances.
 
 **Deliverable:** an executed EDA notebook with the team's observations and similarity
 interpretation, including a concise, evidence-based statement of the problem and an
@@ -23,9 +24,8 @@ produce character-level pseudo ground truth.
 
 ## Provided lab materials
 
-This lab provides a guided dataset-EDA and edit-distance notebook. It reuses the
-five-page triplet sample prepared in Week 1 and reads the full shared NomNaOCR
-dataset without modifying it.
+The notebook audits the full read-only dataset and uses the five Week 1 triplets for
+visual inspection and edit-distance examples.
 
 ## 1. Read and compare the papers
 
@@ -61,6 +61,9 @@ Every team must be able to explain this sequence:
 > page image → character-position detection → box-to-line grouping and reading order
 > → recognition/alignment with the line transcription → confidence filtering
 > → character box + character identity pseudo ground truth
+
+The supplied detection labels are pretrained-detector reference output: useful for
+seeing likely box predictions, but not verified ground truth or character identities.
 
 ## 2. Verify the Week 1 sample
 
@@ -104,16 +107,14 @@ export LAB_WORKSPACE=/data/projectgX/lab-exercise
 uv run jupyter lab labs/week-02-foundations/nomnaocr_eda_and_edit_distance.ipynb
 ```
 
-The notebook only reads `/data/shared/project2026/nomnaocr`. It inventories the full
-dataset, inspects the five local sample triplets in detail, visualizes line polygons
-alongside character-position boxes, and computes pairwise similarities between the
-five page transcriptions.
+The notebook checks triplet completeness, label validity, and box/text count gaps;
+inspects five overlays; then compares controlled OCR errors with a matching reference
+line.
 
 ## 4. Complete and interpret the analysis
 
-Complete the notebook and record brief observations about the dataset structure,
-labels, and five sample pages. Compare the page transcriptions using the required edit
-distances, then explain what the results show and what they do not show.
+Explain each check's downstream consequence and which pipeline failure each
+edit-distance example models.
 
 ## Materials
 

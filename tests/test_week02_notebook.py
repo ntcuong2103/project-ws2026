@@ -59,6 +59,8 @@ def test_week02_notebook_executes_on_five_page_fixture(
     )
     assert "Matched sample triplets: 5" in output_text
     assert "All distance sanity checks passed." in output_text
+    assert "Can transcription characters be zipped directly to detector boxes?" in output_text
+    assert "OCR-style transcription comparisons" in output_text
     assert "Normalized Levenshtein" in output_text
 
 
@@ -76,3 +78,7 @@ def test_week02_handout_includes_readings_and_sample_recovery_command() -> None:
     assert "character-position detection" in handout
     assert "pseudo ground truth" in handout
     assert "recognition/alignment" in handout
+    assert "pretrained-detector reference output" in handout
+    assert "what would fail downstream" in handout
+    assert "OCR-style transcription errors" in handout
+    assert "pairwise similarities" not in handout

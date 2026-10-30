@@ -52,7 +52,7 @@ The table gives the overview; the per-week details (reading, provided materials,
 | Week | Phase | Topic & In-Class Focus | Lab / Studio Work | Deliverable | Lab |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Orientation | Course kickoff; journal-club read of the source paper; intro to Hán-Nôm OCR and IDS decomposition; team formation | Verify access; prepare five image/line-label/detection-label triplets; visualize line polygons and character boxes | Teams formed; environment verified; five sample triplets inspected and visualized | [labs/week-01-orientation](labs/week-01-orientation/) |
-| 2 | Foundations | Two-paper problem formulation; NomNaOCR structure; character-level edit distance | Explain how line supervision and character positions become pseudo ground truth; audit five sample triplets; compare page transcriptions | Executed EDA notebook with problem statement and pseudo-ground-truth pipeline explanation | [labs/week-02-foundations](labs/week-02-foundations/) |
+| 2 | Foundations | Two-paper problem formulation; NomNaOCR readiness; character-level edit distance | Explain how line supervision and detector output become pseudo ground truth; audit pairing/labels and five sample triplets; analyze OCR-style transcription errors | Executed readiness/edit-distance notebook with problem statement and pseudo-ground-truth pipeline explanation | [labs/week-02-foundations](labs/week-02-foundations/) |
 | 3 | Detection I | Single-class character detection; YOLO format and training | Convert a box by hand; fit a fixed 24-page MTH1000 sample; interpret losses/checkpoints; compare 640/1280; train full MTH1000; evaluate and visualize NomNaOCR | MTH1000 checkpoint and test metrics; coordinate/resolution exercises; NomNaOCR metrics, predictions, and overlays | [Week 3 lab](labs/week-03-detection-1/) |
 | 4 | Detection II | Character-level metrics, domain adaptation, and error modes | Inspect Nakagawa class collapse; fine-tune the Week 3 checkpoint; calculate IoU/AP; independently score saved labels; compare NomNaOCR runs | Fine-tuned checkpoint, independent evaluation, comparison table, and character-level error gallery | [Week 4 lab](labs/week-04-detection-2/) |
 | 5 | Recognition I | IDS operators, direct/expanded decompositions, and recognizer token vocabulary | Validate Chinese examples; analyze one Nôm page; verify with zi.tools; export unlabeled detector crops | IDS converter, page coverage report, manual checks, and inference crops | [labs/week-05-recognition-1](labs/week-05-recognition-1/) |
@@ -122,11 +122,11 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 
 - [ ] Compare the two papers; explain the missing character-level supervision, why it is needed, and what paper result the team will reproduce
 - [ ] Explain how character-position detection, box-to-line ordering, recognition/alignment, and confidence filtering convert line transcriptions into character-level pseudo ground truth
-- [ ] Inventory the full dataset's filesystem, counts, sizes, image formats, and label formats
-- [ ] Audit page quality, layout, reading order, line labels, and character-position boxes on all five Week 1 pages
-- [ ] Implement four edit distances and compute pairwise similarities for the five page transcriptions
+- [ ] Audit triplet pairing and label validity; explain the downstream failure prevented by each check
+- [ ] Audit page quality, layout, reading order, line labels, and pretrained-detector reference boxes on all five Week 1 pages
+- [ ] Implement four edit distances and use OCR-style errors on a matching reference/hypothesis transcription pair to interpret them
 
-**Deliverable:** Executed EDA/edit-distance notebook with an evidence-based problem statement, reproduction target, and explanation of the line-level-to-character-level pseudo-ground-truth pipeline.
+**Deliverable:** Executed readiness/edit-distance notebook with an evidence-based problem statement, reproduction target, and explanation of the line-level-to-character-level pseudo-ground-truth pipeline.
 
 ### Week 3 — Detection I
 
