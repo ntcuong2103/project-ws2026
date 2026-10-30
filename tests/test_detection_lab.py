@@ -87,6 +87,15 @@ def test_pixel_conversion_forces_single_class(tmp_path: Path) -> None:
     )
 
 
+def test_pixel_conversion_accepts_character_glyph_labels(tmp_path: Path) -> None:
+    label = tmp_path / "label.txt"
+    label.write_text("經 10 20 30 60\n", encoding="utf-8")
+
+    converted = convert_xyxy_label(label, image_width=100, image_height=200)
+
+    assert converted == "0 0.200000 0.200000 0.200000 0.200000\n"
+
+
 def test_detector_training_exposes_reproducible_optional_tuning_controls() -> None:
     args = build_detector_parser().parse_args(
         ["train", "--data", "data.yaml", "--name", "run"]
@@ -147,28 +156,24 @@ def test_full_split_is_deterministic_exhaustive_and_disjoint(tmp_path: Path) -> 
 
 
 def test_mth_practice_staging_is_deterministic_and_raw(tmp_path: Path) -> None:
-    train_source = make_mth1000(tmp_path / "mth1200", count=30)
-    test_source = make_mth1000(tmp_path / "mth1000", count=10)
+    source = make_mth1000(tmp_path / "mth1200", count=30)
 
-    first = stage_mth_practice_sample(train_source, test_source, tmp_path / "first")
-    second = stage_mth_practice_sample(train_source, test_source, tmp_path / "second")
+    first = stage_mth_practice_sample(source, tmp_path / "first")
+    second = stage_mth_practice_sample(source, tmp_path / "second")
 
-    assert first["splits"] == {"train": 18, "val": 2, "test": 4}
     assert first["entries"] == second["entries"]
     assert len(first["entries"]) == 24
-    assert sum(entry["collection"] == "mth1200" for entry in first["entries"]) == 20
-    assert sum(entry["collection"] == "mth1000" for entry in first["entries"]) == 4
-    raw = next((tmp_path / "first/mth1200/label_char").rglob("*.txt"))
+    assert first["source"] == str(source.resolve())
+    raw = next((tmp_path / "first/labels").rglob("*.txt"))
     assert raw.read_text(encoding="utf-8").startswith("17 ")
 
 
 def _organize_practice(stage: Path, destination: Path, manifest: dict[str, object]) -> None:
-    for entry in manifest["entries"]:
-        split = entry["suggested_split"]
-        collection = entry["collection"]
+    splits = ["train"] * 18 + ["val"] * 2 + ["test"] * 4
+    for entry, split in zip(manifest["entries"], splits, strict=True):
         relative = Path(entry["image"])
-        source_image = stage / collection / "images" / relative
-        source_label = stage / collection / "label_char" / relative.with_suffix(".txt")
+        source_image = stage / "images" / relative
+        source_label = stage / "labels" / relative.with_suffix(".txt")
         image_out = destination / "images" / split / relative
         label_out = destination / "labels" / split / relative.with_suffix(".txt")
         image_out.parent.mkdir(parents=True, exist_ok=True)
@@ -190,10 +195,9 @@ def _organize_practice(stage: Path, destination: Path, manifest: dict[str, objec
 
 
 def test_practice_validator_checks_structure_labels_and_manifest(tmp_path: Path) -> None:
-    train_source = make_mth1000(tmp_path / "mth1200", count=30)
-    test_source = make_mth1000(tmp_path / "mth1000", count=10)
+    source = make_mth1000(tmp_path / "mth1200", count=30)
     stage = tmp_path / "stage"
-    manifest = stage_mth_practice_sample(train_source, test_source, stage)
+    manifest = stage_mth_practice_sample(source, stage)
     dataset = tmp_path / "practice"
     _organize_practice(stage, dataset, manifest)
 
@@ -534,7 +538,7 @@ def test_week3_handout_is_explicitly_single_class() -> None:
     assert "class `0`" in handout
     assert "18 MTH1200 pages" in handout
     assert "2 MTH1200 pages" in handout
-    assert "4 MTH1000 pages" in handout
+    assert "4 MTH1200 pages" in handout
     assert "1,080" in handout and "120 MTH1200" in handout
     assert "canonical" in handout and "MTHv2 research split" in handout
     assert "python -m nom_ocr_lab.prepare_detection_data" in handout

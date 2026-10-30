@@ -65,9 +65,9 @@ of creating another copy.
   class `0` (`character`), and keep their generated `data.yaml` beside the manifest.
 - The Week 3 course protocol uses only MTH1200 for training and validation; MTH1000 remains
   an untouched test collection. This teaching split is not the canonical MTHv2 paper split.
-- `week03-source-sample` contains copied raw labels. Students organize and convert them into
-  `mth-practice`; the validator enforces 18 MTH1200 train, 2 MTH1200 validation, and 4
-  MTH1000 test pages.
+- `week03-source-sample` contains 24 copied raw MTH1200 page/label pairs. Students choose and
+  organize the 18/2/4 train/validation/test split when converting them into `mth-practice`; the
+  validator enforces the split counts and that every staged page is used exactly once.
 - The repository's `nom-ids/` directory contains the exact expanded-IDS mapping and vocabulary
   order used by the recognizer checkpoint; never sort, regenerate, or copy either file into
   generated workspace data.

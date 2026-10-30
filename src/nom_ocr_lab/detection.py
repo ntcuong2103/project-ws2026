@@ -65,7 +65,11 @@ def discover_detection_pairs(
 def convert_xyxy_label(
     label_path: Path, *, image_width: int, image_height: int
 ) -> str:
-    """Convert ``class x1 y1 x2 y2`` rows to single-class YOLO rows."""
+    """Convert ``label x1 y1 x2 y2`` rows to single-class YOLO rows.
+
+    The raw label may be a numeric class ID or a character glyph. It is
+    ignored because this course dataset has one object class.
+    """
 
     if image_width <= 0 or image_height <= 0:
         raise ValueError("Image dimensions must be positive")
@@ -73,8 +77,7 @@ def convert_xyxy_label(
     for line_number, fields in _label_rows(label_path):
         if len(fields) != 5:
             raise ValueError(f"{label_path}:{line_number}: expected 5 fields")
-        values = _finite_floats(fields, label_path, line_number)
-        _, x1, y1, x2, y2 = values
+        x1, y1, x2, y2 = _finite_floats(fields[1:], label_path, line_number)
         if not (0 <= x1 < x2 <= image_width and 0 <= y1 < y2 <= image_height):
             raise ValueError(
                 f"{label_path}:{line_number}: pixel box is outside the image or non-positive"
@@ -147,51 +150,35 @@ def split_train_val(
 
 
 def stage_mth_practice_sample(
-    train_source: Path,
-    test_source: Path,
+    source: Path,
     destination: Path,
     *,
     seed: int = 2026,
 ) -> dict[str, object]:
     """Copy a fixed raw-label sample for the hands-on Week 3 exercise."""
 
-    train_source = train_source.resolve()
-    test_source = test_source.resolve()
+    source = source.resolve()
     destination = destination.resolve()
-    _validate_new_destination(train_source, destination)
-    _validate_new_destination(test_source, destination)
-    train_pairs = discover_detection_pairs(train_source)
-    test_pairs = discover_detection_pairs(test_source)
-    if len(train_pairs) < 20 or len(test_pairs) < 4:
-        raise RuntimeError(
-            "Practice staging requires at least 20 MTH1200 and 4 MTH1000 pairs"
-        )
+    _validate_new_destination(source, destination)
+    pairs = discover_detection_pairs(source)
+    if len(pairs) < sum(PRACTICE_SPLITS.values()):
+        raise RuntimeError("Practice staging requires at least 24 MTH1200 pairs")
 
     rng = random.Random(seed)
-    selected_train = list(train_pairs)
-    selected_test = list(test_pairs)
-    rng.shuffle(selected_train)
-    rng.shuffle(selected_test)
-    selected_train = selected_train[:20]
-    selected_test = selected_test[:4]
-    rng.shuffle(selected_train)
-    assignments = [
-        ("mth1200", "train" if index < 18 else "val", pair, train_source)
-        for index, pair in enumerate(selected_train)
-    ] + [("mth1000", "test", pair, test_source) for pair in selected_test]
+    selected = list(pairs)
+    rng.shuffle(selected)
+    selected = selected[: sum(PRACTICE_SPLITS.values())]
 
     destination.mkdir(parents=True)
     entries = []
-    for collection, split, pair, source in assignments:
-        image_out = destination / collection / "images" / pair.relative_image
+    for pair in selected:
+        image_out = destination / "images" / pair.relative_image
         label_relative = pair.relative_image.with_suffix(".txt")
-        label_out = destination / collection / "label_char" / label_relative
+        label_out = destination / "labels" / label_relative
         _materialize_file(pair.image_path, image_out, "copy")
         _materialize_file(pair.label_path, label_out, "copy")
         entries.append(
             {
-                "collection": collection,
-                "suggested_split": split,
                 "image": pair.relative_image.as_posix(),
                 "raw_label": label_relative.as_posix(),
                 "source_image": pair.image_path.relative_to(source).as_posix(),
@@ -199,18 +186,12 @@ def stage_mth_practice_sample(
             }
         )
 
-    split_order = {"train": 0, "val": 1, "test": 2}
-    entries.sort(
-        key=lambda entry: (
-            split_order[str(entry["suggested_split"])],
-            str(entry["image"]),
-        )
-    )
+    entries.sort(key=lambda entry: str(entry["image"]))
     manifest = {
         "version": MANIFEST_VERSION,
         "kind": "mth-practice-source-sample",
         "seed": seed,
-        "sources": {"mth1200": str(train_source), "mth1000": str(test_source)},
+        "source": str(source),
         "size": len(entries),
         "splits": dict(PRACTICE_SPLITS),
         "entries": entries,
@@ -300,12 +281,9 @@ def validate_mth_practice_dataset(
 
     dataset = dataset.resolve()
     manifest = json.loads(source_manifest.read_text(encoding="utf-8"))
-    expected = {
-        (entry["suggested_split"], Path(entry["image"]).as_posix())
-        for entry in manifest["entries"]
-    }
+    expected = {Path(entry["image"]).as_posix() for entry in manifest["entries"]}
     problems: list[str] = []
-    actual: set[tuple[str, str]] = set()
+    actual: set[str] = set()
     split_counts: dict[str, int] = {}
     for split, expected_count in PRACTICE_SPLITS.items():
         image_root = dataset / "images" / split
@@ -319,9 +297,9 @@ def validate_mth_practice_dataset(
             problems.append(f"{split}: expected {expected_count} images, found {len(images)}")
         for image_path in images:
             relative = image_path.relative_to(image_root)
-            key = (split, relative.as_posix())
+            key = relative.as_posix()
             if key in actual:
-                problems.append(f"duplicate page in {split}: {relative}")
+                problems.append(f"page assigned more than once: {relative}")
             actual.add(key)
             label_path = label_root / relative.with_suffix(".txt")
             if not label_path.is_file():
@@ -343,9 +321,9 @@ def validate_mth_practice_dataset(
         missing = expected - actual
         unexpected = actual - expected
         if missing:
-            problems.append(f"missing manifest assignments: {sorted(missing)[:5]}")
+            problems.append(f"missing staged pages: {sorted(missing)[:5]}")
         if unexpected:
-            problems.append(f"unexpected assignments: {sorted(unexpected)[:5]}")
+            problems.append(f"pages not in the staged sample: {sorted(unexpected)[:5]}")
     try:
         _validate_detection_yaml(dataset / "data.yaml", dataset)
     except (OSError, ValueError, yaml.YAMLError) as exc:

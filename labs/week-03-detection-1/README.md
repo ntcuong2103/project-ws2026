@@ -68,17 +68,27 @@ submitting; the supplied Week 3 Slurm jobs honor that override.
 ## 2. Stage the raw practice sample
 
 The command below copies a fixed sample into your data area. It does **not** construct the
-finished YOLO dataset. The sample contains 20 MTH1200 pages and 4 MTH1000 pages with raw
-`class_id x1 y1 x2 y2` labels.
+finished YOLO dataset. The sample contains 24 MTH1200 pages with raw
+`label x1 y1 x2 y2` annotations.
 
 ```bash
 uv run python -m nom_ocr_lab.prepare_detection_data stage-mth-practice \
-  --train-source /data/shared/project2026/tkh-mth2k2/MTH1200 \
-  --test-source /data/shared/project2026/tkh-mth2k2/MTH1000
+  --source /data/shared/project2026/tkh-mth2k2/MTH1200
 ```
 
-Inspect `datasets/week03-source-sample/manifest.json`. Its `suggested_split` assigns 18
-MTH1200 pages to train, 2 MTH1200 pages to validation, and 4 MTH1000 pages to test.
+Inspect `datasets/week03-source-sample/manifest.json`; it lists the 24 sampled page/label pairs.
+**Students choose which 18 pages go to training, which 2 go to validation, and which 4 go to
+testing.**
+The staged sample is deliberately raw and is **not** a finished dataset:
+
+```text
+week03-source-sample/
+├── images/
+│   └── <page>.jpg           # 24 selected raw MTH1200 pages
+├── labels/
+│   └── <page>.txt           # matching raw character labels
+└── manifest.json            # records the 24 pages students must use exactly once
+```
 
 Construct this dataset yourself, preserving each page's relative path:
 
@@ -87,7 +97,7 @@ mth-practice/
 ├── images/
 │   ├── train/    # 18 MTH1200 pages
 │   ├── val/      # 2 MTH1200 pages
-│   └── test/     # 4 MTH1000 pages
+│   └── test/     # 4 MTH1200 pages
 ├── labels/
 │   ├── train/
 │   ├── val/
@@ -120,13 +130,50 @@ y_center = (y1 + y2) / (2H)       height = (y2 - y1) / H
 The output row is `0 x_center y_center width height`. The original character identity is
 replaced by class `0` because this is a one-class localization task.
 
+### Raw MTH label field
+
+The first field in a raw MTH row may be a numeric class ID or the annotated character itself
+(for example, `經 2068.0 1533.0 2261.0 1693.0`). This is expected. The supplied
+`convert-mth-label` helper ignores that first field and converts the four numeric coordinates to
+one-class YOLO labels. **Students do not need to edit, map, or remove character labels.** If the
+helper reports that a coordinate field is non-numeric or a box is outside its image, report that
+specific source file to the teaching team.
+
+### Why the coordinates are normalized
+
+Raw annotations are measured in pixels, so their values depend on the page resolution. For
+example, an `x` coordinate of `400` means the horizontal midpoint of an 800-pixel-wide image,
+but it is only one quarter of the way across a 1600-pixel-wide image. A detector is trained on
+pages that may have different widths and heights and may later resize them for training. Using
+pixel coordinates directly would make the same relative character position have different target
+values solely because the image was scanned or resized differently.
+
+YOLO therefore stores each coordinate as a fraction of the image dimension: divide horizontal
+values (`x_center` and `width`) by `W`, and vertical values (`y_center` and `height`) by `H`.
+The resulting values are normally in the range `0` to `1`, describing a position and size
+relative to that particular page. Thus, `x_center = 0.5` means “centered horizontally,” whatever
+the image width is; `width = 0.1` means “one tenth of the image width.” This makes the label
+resolution-independent and lets the training software correctly transform the boxes when it
+resizes or augments an image.
+
+For example, in an 800 × 1000 pixel image, a box from `(x1, y1, x2, y2) = (120, 200, 280, 500)`
+has center `(200, 350)` and size `(160, 300)` pixels. Its YOLO row is:
+
+```text
+0 0.250000 0.350000 0.200000 0.300000
+```
+
+Always use the original image's width and height for this calculation, keep the order
+`x_center y_center width height`, and do not divide every value by the same dimension. Values
+outside `0`–`1` usually indicate an invalid box or that the wrong image dimensions were used.
+
 Calculate the first box of the first manifest entry by hand. Then convert each file with the
 provided one-file helper while placing it in the corresponding output split:
 
 ```bash
 uv run python -m nom_ocr_lab.prepare_detection_data convert-mth-label \
-  --image "$LAB_WORKSPACE/datasets/week03-source-sample/mth1200/images/<page>.jpg" \
-  --label "$LAB_WORKSPACE/datasets/week03-source-sample/mth1200/label_char/<page>.txt" \
+  --image "$LAB_WORKSPACE/datasets/week03-source-sample/images/<page>.jpg" \
+  --label "$LAB_WORKSPACE/datasets/week03-source-sample/labels/<page>.txt" \
   --output "$LAB_WORKSPACE/datasets/mth-practice/labels/train/<page>.txt"
 ```
 

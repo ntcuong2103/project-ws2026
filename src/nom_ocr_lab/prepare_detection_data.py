@@ -30,8 +30,7 @@ def build_parser() -> argparse.ArgumentParser:
     stage = subparsers.add_parser(
         "stage-mth-practice", help="Copy the fixed raw-label Week 3 sample"
     )
-    stage.add_argument("--train-source", type=Path, required=True)
-    stage.add_argument("--test-source", type=Path, required=True)
+    stage.add_argument("--source", type=Path, required=True)
     stage.add_argument("--output", type=Path)
     stage.add_argument("--seed", type=int, default=2026)
 
@@ -76,9 +75,7 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "stage-mth-practice":
         output = args.output or _workspace_output("week03-source-sample")
-        result = stage_mth_practice_sample(
-            args.train_source, args.test_source, output, seed=args.seed
-        )
+        result = stage_mth_practice_sample(args.source, output, seed=args.seed)
     elif args.command == "convert-mth-label":
         boxes = convert_mth_label(args.image, args.label, args.output)
         print(f"Converted {boxes} boxes to {args.output.resolve()}")
@@ -115,7 +112,8 @@ def main(argv: list[str] | None = None) -> int:
         )
     action = "Validated" if args.command == "validate-mth-practice" else "Prepared"
     print(f"{action} {result['size']} paired pages at {output.resolve()}")
-    print(f"Splits: {result['splits']}")
+    if "splits" in result:
+        print(f"Splits: {result['splits']}")
     return 0
 
 
