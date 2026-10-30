@@ -542,6 +542,9 @@ def test_week3_handout_is_explicitly_single_class() -> None:
     assert "last.pt" in handout
     assert "sbatch" in handout
     assert "not a target" in handout
+    assert "models/pretrained/yolo11n.pt" in handout
+    assert "YOLO(\"yolo11n.pt\")" in handout
+    assert "yolo11n.pt is ready" in handout
 
 
 def test_week4_handout_uses_week3_checkpoint_and_shared_source_tools() -> None:

@@ -23,7 +23,9 @@ By the end of the lab, your team can:
 ## 1. Environment and data boundaries
 
 ```bash
+export LAB_REPO=/home/projectgX/project-ws2026
 export LAB_WORKSPACE=/data/projectgX/lab-exercise
+cd "$LAB_REPO"
 uv sync
 mkdir -p "$LAB_WORKSPACE/logs" "$LAB_WORKSPACE/models/pretrained"
 ```
@@ -32,9 +34,36 @@ Keep code under `/home/projectgX` and generated data, models, logs, and metrics 
 `$LAB_WORKSPACE`. `/data/shared/project2026` is read-only. Full training and evaluation must
 use `sbatch`, not a long-running interactive `srun` session.
 
-The Slurm jobs expect the COCO checkpoint at
-`$LAB_WORKSPACE/models/pretrained/yolo11n.pt`. An instructor can instead export
-`YOLO11N_WEIGHTS` with the absolute path to an existing shared copy.
+### Download and verify the YOLO11n starting weights
+
+The Slurm jobs expect the COCO-pretrained checkpoint at
+`$LAB_WORKSPACE/models/pretrained/yolo11n.pt`. Download it once from a shell with internet
+access. Running from the pretrained-model directory keeps the generated weight out of the Git
+repository:
+
+```bash
+cd "$LAB_WORKSPACE/models/pretrained"
+
+"$LAB_REPO/.venv/bin/python" -c \
+  'from ultralytics import YOLO; YOLO("yolo11n.pt")'
+
+cd "$LAB_REPO"
+```
+
+Check both that the file is present and that Ultralytics can load it:
+
+```bash
+test -s "$LAB_WORKSPACE/models/pretrained/yolo11n.pt" \
+  && echo "yolo11n.pt is present"
+
+"$LAB_REPO/.venv/bin/python" -c \
+  'import os; from ultralytics import YOLO; p=os.environ["LAB_WORKSPACE"] + "/models/pretrained/yolo11n.pt"; YOLO(p); print("yolo11n.pt is ready")'
+```
+
+Do not submit a training job unless the final command prints `yolo11n.pt is ready`. If the
+compute server cannot access the internet, copy an existing `yolo11n.pt` into the expected
+directory. Alternatively, export `YOLO11N_WEIGHTS=/absolute/path/to/yolo11n.pt` before
+submitting; the supplied Week 3 Slurm jobs honor that override.
 
 ## 2. Stage the raw practice sample
 
