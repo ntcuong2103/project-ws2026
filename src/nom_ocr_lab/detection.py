@@ -200,22 +200,6 @@ def stage_mth_practice_sample(
     return manifest
 
 
-def convert_mth_label(image_path: Path, label_path: Path, output_path: Path) -> int:
-    """Convert one raw MTH label file into single-class YOLO format."""
-
-    if _is_below_shared(output_path.resolve()):
-        raise ValueError(f"Output must not be inside read-only {READ_ONLY_SHARED_ROOT}")
-    if output_path.exists():
-        raise FileExistsError(f"Refusing to overwrite existing label: {output_path}")
-    with Image.open(image_path) as image:
-        converted = convert_xyxy_label(
-            label_path, image_width=image.width, image_height=image.height
-        )
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(converted, encoding="utf-8")
-    return len(converted.splitlines())
-
-
 def prepare_mth_course_dataset(
     train_source: Path,
     test_source: Path,

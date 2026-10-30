@@ -133,11 +133,10 @@ replaced by class `0` because this is a one-class localization task.
 ### Raw MTH label field
 
 The first field in a raw MTH row may be a numeric class ID or the annotated character itself
-(for example, `經 2068.0 1533.0 2261.0 1693.0`). This is expected. The supplied
-`convert-mth-label` helper ignores that first field and converts the four numeric coordinates to
-one-class YOLO labels. **Students do not need to edit, map, or remove character labels.** If the
-helper reports that a coordinate field is non-numeric or a box is outside its image, report that
-specific source file to the teaching team.
+(for example, `經 2068.0 1533.0 2261.0 1693.0`). This is expected. In your implementation,
+ignore that first field and convert the four numeric coordinates to a one-class YOLO label.
+**Do not edit, map, or remove character labels from the raw files.** Report a source file only if
+one of its coordinate fields is non-numeric or its box is outside the matching image.
 
 ### Why the coordinates are normalized
 
@@ -167,18 +166,12 @@ Always use the original image's width and height for this calculation, keep the 
 `x_center y_center width height`, and do not divide every value by the same dimension. Values
 outside `0`–`1` usually indicate an invalid box or that the wrong image dimensions were used.
 
-Calculate the first box of the first manifest entry by hand. Then convert each file with the
-provided one-file helper while placing it in the corresponding output split:
+Calculate the first box of the first manifest entry by hand. Then implement the conversion
+yourself for every selected page. Your code must read the matching image dimensions, write one
+normalized class-`0` YOLO row per raw label row, and place that output beside its image in the
+chosen `train`, `val`, or `test` split.
 
-```bash
-uv run python -m nom_ocr_lab.prepare_detection_data convert-mth-label \
-  --image "$LAB_WORKSPACE/datasets/week03-source-sample/images/<page>.jpg" \
-  --label "$LAB_WORKSPACE/datasets/week03-source-sample/labels/<page>.txt" \
-  --output "$LAB_WORKSPACE/datasets/mth-practice/labels/train/<page>.txt"
-```
-
-The helper refuses to overwrite an existing label. After organizing all 24 pages, validate
-the result:
+After organizing and converting all 24 pages, validate the result:
 
 ```bash
 uv run python -m nom_ocr_lab.prepare_detection_data validate-mth-practice \
@@ -189,6 +182,10 @@ Fix every reported mismatch before continuing. The validator checks the required
 assignment, paired stems, normalized class-0 boxes, `data.yaml`, and split membership.
 
 Instructors can smoke-test the complete 24-page path before scheduling the full run:
+
+The smoke job requests one `a100_2g.10gb` slice, the smallest non-MPS GPU allocation on the
+course GPU node. Do not request a full A100 or the larger `a100_3g.20gb` slice for this 24-page
+check.
 
 ```bash
 sbatch \

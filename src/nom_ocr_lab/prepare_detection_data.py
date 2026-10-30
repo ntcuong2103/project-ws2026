@@ -7,7 +7,6 @@ import os
 from pathlib import Path
 
 from .detection import (
-    convert_mth_label,
     prepare_mth_course_dataset,
     prepare_nomnaocr_archive,
     prepare_yolo_view,
@@ -33,13 +32,6 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--source", type=Path, required=True)
     stage.add_argument("--output", type=Path)
     stage.add_argument("--seed", type=int, default=2026)
-
-    convert = subparsers.add_parser(
-        "convert-mth-label", help="Convert one raw MTH label to YOLO format"
-    )
-    convert.add_argument("--image", type=Path, required=True)
-    convert.add_argument("--label", type=Path, required=True)
-    convert.add_argument("--output", type=Path, required=True)
 
     validate = subparsers.add_parser(
         "validate-mth-practice", help="Validate the student-organized 18/2/4 dataset"
@@ -76,10 +68,6 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "stage-mth-practice":
         output = args.output or _workspace_output("week03-source-sample")
         result = stage_mth_practice_sample(args.source, output, seed=args.seed)
-    elif args.command == "convert-mth-label":
-        boxes = convert_mth_label(args.image, args.label, args.output)
-        print(f"Converted {boxes} boxes to {args.output.resolve()}")
-        return 0
     elif args.command == "validate-mth-practice":
         source_manifest = args.source_manifest or (
             _workspace_output("week03-source-sample") / "manifest.json"

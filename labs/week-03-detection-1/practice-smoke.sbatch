@@ -8,6 +8,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
 #SBATCH --time=02:00:00
+# Smallest non-MPS GPU slice available on the course GPU node.
 #SBATCH --gres=gpu:a100_2g.10gb:1
 
 set -euo pipefail
