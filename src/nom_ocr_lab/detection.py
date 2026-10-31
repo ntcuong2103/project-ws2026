@@ -214,7 +214,8 @@ def prepare_mth_course_dataset(
     """Prepare the canonical MTH1200/MTH1000 YOLO dataset view.
 
     Source ``labels/`` files must already be normalized, single-class YOLO labels.
-    They are validated and materialized unchanged beside their selected images.
+    Zero-area source rows are omitted; all other rows are validated and copied beside
+    their selected images.
     """
 
     train_source = train_source.resolve()
@@ -233,12 +234,15 @@ def prepare_mth_course_dataset(
         **train_val,
         "test": discover_detection_pairs(test_source, label_dir="labels"),
     }
-    for pairs in split_map.values():
-        for pair in pairs:
-            _validate_single_class_yolo_label(pair.label_path)
+    sanitized_labels = {
+        pair.label_path: _sanitize_single_class_yolo_label(pair.label_path)
+        for pairs in split_map.values()
+        for pair in pairs
+    }
 
     destination.mkdir(parents=True)
     entries = []
+    dropped_degenerate_boxes = 0
     for split, pairs in split_map.items():
         source = test_source if split == "test" else train_source
         collection = "mth1000" if split == "test" else "mth1200"
@@ -246,14 +250,19 @@ def prepare_mth_course_dataset(
             image_out = destination / "images" / split / pair.relative_image
             label_out = destination / "labels" / split / pair.relative_image.with_suffix(".txt")
             _materialize_file(pair.image_path, image_out, materialize)
-            _materialize_file(pair.label_path, label_out, materialize)
+            label_text, source_boxes, dropped_boxes = sanitized_labels[pair.label_path]
+            label_out.parent.mkdir(parents=True, exist_ok=True)
+            label_out.write_text(label_text, encoding="utf-8")
+            dropped_degenerate_boxes += dropped_boxes
             entries.append(
                 {
                     "split": split,
                     "collection": collection,
                     "image": pair.relative_image.as_posix(),
                     "source_label": pair.label_path.relative_to(source).as_posix(),
-                    "boxes": sum(1 for _ in _label_rows(pair.label_path)),
+                    "source_boxes": source_boxes,
+                    "boxes": source_boxes - dropped_boxes,
+                    "dropped_degenerate_boxes": dropped_boxes,
                 }
             )
 
@@ -265,6 +274,7 @@ def prepare_mth_course_dataset(
         "sources": {"mth1200": str(train_source), "mth1000": str(test_source)},
         "size": len(entries),
         "splits": {name: len(pairs) for name, pairs in split_map.items()},
+        "dropped_degenerate_boxes": dropped_degenerate_boxes,
         "entries": entries,
     }
     _write_json(destination / "manifest.json", manifest)
@@ -528,6 +538,44 @@ def _validate_single_class_yolo_label(path: Path) -> None:
             or y + height / 2 > 1 + YOLO_BOUNDARY_TOLERANCE
         ):
             raise ValueError(f"{path}:{line_number}: box exceeds image height")
+
+
+def _sanitize_single_class_yolo_label(path: Path) -> tuple[str, int, int]:
+    """Return valid rows, total source rows, and omitted zero-area rows."""
+
+    sanitized_rows = []
+    source_boxes = 0
+    dropped_boxes = 0
+    for line_number, fields in _label_rows(path):
+        source_boxes += 1
+        if len(fields) != 5:
+            raise ValueError(f"{path}:{line_number}: expected exactly 5 fields")
+        values = _finite_floats(fields, path, line_number)
+        class_id, x, y, width, height = values
+        if class_id != 0:
+            raise ValueError(f"{path}:{line_number}: class must be 0")
+        if not (0 <= x <= 1 and 0 <= y <= 1 and 0 <= width <= 1 and 0 <= height <= 1):
+            raise ValueError(
+                f"{path}:{line_number}: normalized coordinates must be in [0, 1]"
+            )
+        if (
+            x - width / 2 < -YOLO_BOUNDARY_TOLERANCE
+            or x + width / 2 > 1 + YOLO_BOUNDARY_TOLERANCE
+        ):
+            raise ValueError(f"{path}:{line_number}: box exceeds image width")
+        if (
+            y - height / 2 < -YOLO_BOUNDARY_TOLERANCE
+            or y + height / 2 > 1 + YOLO_BOUNDARY_TOLERANCE
+        ):
+            raise ValueError(f"{path}:{line_number}: box exceeds image height")
+        if width == 0 or height == 0:
+            dropped_boxes += 1
+            continue
+        sanitized_rows.append(" ".join(fields))
+    label_text = "\n".join(sanitized_rows)
+    if label_text:
+        label_text += "\n"
+    return label_text, source_boxes, dropped_boxes
 
 
 def _validate_detection_yaml(path: Path, dataset: Path) -> None:

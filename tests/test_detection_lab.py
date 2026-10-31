@@ -251,7 +251,9 @@ def test_course_mth_uses_train_source_for_90_10_and_all_test_source(tmp_path: Pa
     }
     assert all_label_rows_start_with_zero(tmp_path / "first/labels")
     first_label = next((tmp_path / "first" / "labels").rglob("*.txt"))
-    assert first_label.is_symlink()
+    first_image = next((tmp_path / "first" / "images").rglob("*.jpg"))
+    assert not first_label.is_symlink()
+    assert first_image.is_symlink()
 
 
 @pytest.mark.parametrize(
@@ -284,6 +286,34 @@ def test_course_mth_accepts_small_boundary_rounding_in_ready_yolo_labels(
     manifest = prepare_mth_course_dataset(train_source, test_source, tmp_path / "output")
 
     assert manifest["splits"] == {"train": 9, "val": 1, "test": 10}
+
+
+def test_course_mth_discards_degenerate_ready_yolo_rows(tmp_path: Path) -> None:
+    train_source = make_ready_mth(tmp_path / "mth1200", count=10)
+    test_source = make_ready_mth(tmp_path / "mth1000", count=10)
+    source_label = next((test_source / "labels").rglob("*.txt"))
+    source_label.write_text(
+        "0 0.500000 0.500000 0.200000 0.300000\n"
+        "0 1.000000 0.275336 0.000000 0.014652\n",
+        encoding="utf-8",
+    )
+
+    output = tmp_path / "output"
+    manifest = prepare_mth_course_dataset(train_source, test_source, output)
+
+    output_label = output / "labels" / "test" / source_label.relative_to(test_source / "labels")
+    assert output_label.read_text(encoding="utf-8") == "0 0.500000 0.500000 0.200000 0.300000\n"
+    assert not output_label.is_symlink()
+    entry = next(
+        entry
+        for entry in manifest["entries"]
+        if entry["collection"] == "mth1000"
+        and entry["source_label"] == source_label.relative_to(test_source).as_posix()
+    )
+    assert entry["source_boxes"] == 2
+    assert entry["boxes"] == 1
+    assert entry["dropped_degenerate_boxes"] == 1
+    assert manifest["dropped_degenerate_boxes"] == 1
 
 
 def test_course_mth_shared_destination_requires_explicit_staff_flag(
