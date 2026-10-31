@@ -177,7 +177,7 @@ def test_week05_notebook_executes_on_small_fixture(
     image_path.parent.mkdir(parents=True)
     line_path.parent.mkdir(parents=True)
     Image.new("RGB", (40, 60), "white").save(image_path)
-    line_path.write_text("0,0,20,0,20,50,0,50,明林\n", encoding="utf-8")
+    line_path.write_text("0,0,20,0,20,50,0,50,明X林X\n", encoding="utf-8")
 
     monkeypatch.setenv("LAB_WORKSPACE", str(workspace))
     monkeypatch.setenv("MPLBACKEND", "Agg")
@@ -198,5 +198,8 @@ def test_week05_notebook_executes_on_small_fixture(
         if output.output_type == "stream"
     )
     assert "Five Chinese reference conversions passed." in output_text
-    assert "Page lookup coverage: 2/2 = 100.00%" in output_text
+    assert "Corpus pages scanned: 1" in output_text
+    assert "Corpus IDS coverage: 2/4 = 50.00%" in output_text
+    assert "Missing IDS: 2 occurrences of 1 distinct characters" in output_text
+    assert "  1 | X | U+0058 |           2 |     1" in output_text
     assert "No crop manifest yet:" in output_text

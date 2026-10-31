@@ -17,7 +17,7 @@ By the end of the lab, you can:
 - explain how an Ideographic Description Sequence (IDS) represents character structure;
 - distinguish IDS operators from terminal components;
 - convert Unicode Chinese and Nôm text to the recognizer's expanded IDS tokens;
-- measure dictionary coverage on one real NomNaOCR page; and
+- audit IDS coverage across the durable NomNaOCR sample and identify its most frequent gaps; and
 - export one page of detector boxes as unlabeled crops for recognition.
 
 One important distinction: this is **text-level IDS tokenization**, not visual radical
@@ -77,7 +77,7 @@ walks you through:
 1. direct versus expanded IDS;
 2. the exact expected conversions for `休好字明林`;
 3. Unicode-code-point splitting of a line transcription;
-4. coverage and OOV reporting for one Week 1 sample page;
+4. corpus-wide IDS coverage and top-five OOV reporting across the durable Week 1 sample;
 5. manual verification of at least five covered Nôm characters with zi.tools; and
 6. a contact sheet of the detector crops exported below.
 
@@ -90,12 +90,17 @@ zi.tools may show a direct IDS, a glyph-region variant, or another normalization
 differences are useful observations—record them rather than changing the course dictionary to
 force a match. Use zi.tools as a manual reference, not as an automated dependency.
 
-## 4. Analyze one real NomNaOCR page
+## 4. Audit the NomNaOCR sample, then analyze one page
 
-Choose one of the five durable Week 1 pages in
-`$LAB_WORKSPACE/datasets/nomnaocr-sample`, then give the notebook its relative image path. The
-notebook finds the matching `line_labels/<relative-path>.txt`, parses its transcriptions, and
-shows which non-whitespace code points are covered and which are out of vocabulary (OOV).
+The notebook scans every durable Week 1 page in `$LAB_WORKSPACE/datasets/nomnaocr-sample`,
+parses every matching `line_labels/<relative-path>.txt`, and reports overall IDS coverage plus
+the five missing Unicode characters with the most transcription occurrences. For each missing
+character it also reports how many pages contain it and provides a zi.tools link. Treat the
+occurrence count as evidence of the automated-labeling opportunity: it shows how many text
+positions cannot yet receive an IDS target from the current vocabulary.
+
+Then choose one of those pages by setting `WEEK05_PAGE` to its relative image path. The selected
+page remains the one used for the manual zi.tools checks and unlabeled crop exercise.
 
 A line label contains a polygon and a line transcription, but it does **not** identify the box
 that belongs to each character. Do not assign transcription characters directly to detector
@@ -134,13 +139,13 @@ need a GPU.
 - [ ] Inspect the bundled `ids_exp.txt` and `vocab_ids.txt` resources without modifying them.
 - [ ] Reproduce the five exact Chinese reference conversions.
 - [ ] Reuse text→IDS conversion in the team project repository.
-- [ ] Produce a one-page Nôm coverage/OOV table.
+- [ ] Produce a corpus-wide IDS coverage report with the five most frequent missing Nôm characters.
 - [ ] Record five zi.tools checks, including any normalization or glyph-variant difference.
 - [ ] Implement the crop exporter, run the Week 3–4 detector on that page, and inspect its crop contact sheet.
 - [ ] Explain why the crops remain unlabeled until sequence alignment.
 
 ## Deliverable
 
-A validated IDS converter; a one-page transcription coverage report; a five-row zi.tools
+A validated IDS converter; a corpus-wide IDS coverage/OOV report; a five-row zi.tools
 verification table; and unlabeled recognizer inference crops with their manifest and contact
 sheet. Keep generated predictions and crops out of Git.
