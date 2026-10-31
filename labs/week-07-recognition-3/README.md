@@ -28,6 +28,27 @@ Use the fixed fixtures to check four important edge cases exactly: a normal EOS-
 sequence, immediate EOS, repeated emitted tokens, and an EOS-free sequence that stops at the
 maximum length.
 
+### Tiny decoding example
+
+Suppose `SOS = 0`, `EOS = 1`, and the ordinary IDS token IDs are `2 = ⿰`, `3 = 氵`, and
+`4 = 青`. At each row, `next_token_logits(prefix)` returns one score per token in the order
+`[SOS, EOS, ⿰, 氵, 青]`; choose the position with the largest score. With `max_length = 4`,
+a greedy run can look like this:
+
+> **Remember:** The prefix always starts as `[SOS]`; there is no model call with an empty
+> prefix. `EOS` is not inserted by the decoder: it is a recognizer prediction. When argmax
+> selects `EOS`, the decoder stops and does not emit it as part of the IDS.
+
+| Current prefix | Logits returned by the model | Argmax token | Emitted IDS tokens |
+| --- | --- | --- | --- |
+| `[0]` | `[−3.0, −1.0, **4.2**, 0.3, 0.1]` | `2` (`⿰`) | `[2]` |
+| `[0, 2]` | `[−2.0, 0.4, −0.5, **3.8**, 0.7]` | `3` (`氵`) | `[2, 3]` |
+| `[0, 2, 3]` | `[−1.5, 0.1, 0.2, −0.3, **4.0**]` | `4` (`青`) | `[2, 3, 4]` |
+| `[0, 2, 3, 4]` | `[−2.0, **5.1**, 0.3, 0.1, −0.4]` | `1` (`EOS`) | stop |
+
+The returned token IDs are `[2, 3, 4]`: `SOS` starts the prefix and `EOS` stops decoding, but
+neither is emitted. Joining the emitted tokens gives the IDS string `⿰氵青`.
+
 ## IDS composition and output contract
 
 Join the emitted vocabulary tokens into an IDS string, then look it up in the reverse
