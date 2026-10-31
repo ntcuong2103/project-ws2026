@@ -172,8 +172,9 @@ def test_week05_notebook_executes_on_small_fixture(
     (ids_root / "cjkvi" / "ids-ext-cdef.txt").write_text("", encoding="utf-8")
 
     corpus_root = workspace / "datasets" / "full-nomnaocr"
-    image_path = corpus_root / "images" / "volume" / "page.jpg"
-    line_path = corpus_root / "line_labels" / "volume" / "page.txt"
+    page_relative_path = Path("DVSKTT-1 Quyen thu/DVSKTT_thu_VI_10a.jpg")
+    image_path = corpus_root / "images" / page_relative_path
+    line_path = corpus_root / "line_labels" / page_relative_path.with_suffix(".txt")
     image_path.parent.mkdir(parents=True)
     line_path.parent.mkdir(parents=True)
     Image.new("RGB", (40, 60), "white").save(image_path)
@@ -181,6 +182,8 @@ def test_week05_notebook_executes_on_small_fixture(
     for number in range(2, 7):
         extra_image = corpus_root / "images" / "volume" / f"page-{number}.jpg"
         extra_label = corpus_root / "line_labels" / "volume" / f"page-{number}.txt"
+        extra_image.parent.mkdir(parents=True, exist_ok=True)
+        extra_label.parent.mkdir(parents=True, exist_ok=True)
         Image.new("RGB", (40, 60), "white").save(extra_image)
         extra_label.write_text("0,0,20,0,20,50,0,50,Y\n", encoding="utf-8")
 

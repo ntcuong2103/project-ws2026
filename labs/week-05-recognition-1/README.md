@@ -100,8 +100,11 @@ inspect the source directly. Treat the occurrence count as evidence of the autom
 opportunity: it shows how many text positions cannot yet receive an IDS target from the current
 vocabulary. Set `NOMNAOCR_ROOT` only to use an equivalent read-only corpus elsewhere.
 
-Then choose one of those pages by setting `WEEK05_PAGE` to its path relative to `images`. The selected
-page remains the one used for the manual zi.tools checks and unlabeled crop exercise.
+Then choose one of those pages by editing the `relative_image = Path(...)` assignment in the
+notebook. Use its path relative to `images`; for example, the full path
+`/data/shared/project2026/nomnaocr/images/DVSKTT-1 Quyen thu/DVSKTT_thu_VI_10a.jpg`
+becomes `Path("DVSKTT-1 Quyen thu/DVSKTT_thu_VI_10a.jpg")`. The selected page remains the one
+used for the manual zi.tools checks and unlabeled crop exercise.
 
 A line label contains a polygon and a line transcription, but it does **not** identify the box
 that belongs to each character. Do not assign transcription characters directly to detector
