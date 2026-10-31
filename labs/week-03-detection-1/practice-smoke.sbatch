@@ -5,11 +5,12 @@
 #SBATCH --qos=normal
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=16G
-#SBATCH --time=02:00:00
-# Smallest non-MPS GPU slice available on the course GPU node.
-#SBATCH --gres=gpu:a100_2g.10gb:1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=8G
+#SBATCH --time=01:00:00
+# Shared MPS slice for the small 24-page smoke run.
+# If MPS itself interrupts a running job, use a100_2g.10gb (exclusive) on resubmission.
+#SBATCH --gres=gpu:a100_2g.10gb_mps:1
 
 set -euo pipefail
 : "${LAB_WORKSPACE:?Export LAB_WORKSPACE before submitting this job}"
