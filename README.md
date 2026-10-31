@@ -177,7 +177,7 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 - [ ] Validate text→IDS conversion on the five Chinese reference characters
 - [ ] Report coverage and OOV characters for one NomNaOCR page
 - [ ] Record five zi.tools checks and explain raw/expanded or glyph-variant differences
-- [ ] Export and inspect unlabeled inference crops from the Week 3–4 detector
+- [ ] Inspect exported detector crops: run the Week 3–4 detector and your team crop exporter first. These boxes remain unlabeled; line transcription order is not a safe box-to-character assignment.
 
 **Deliverable:** Validated IDS converter, one-page coverage report, zi.tools verification table, and unlabeled recognizer inference crops.
 
