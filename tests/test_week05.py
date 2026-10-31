@@ -171,20 +171,21 @@ def test_week05_notebook_executes_on_small_fixture(
     )
     (ids_root / "cjkvi" / "ids-ext-cdef.txt").write_text("", encoding="utf-8")
 
-    sample_root = workspace / "datasets" / "nomnaocr-sample"
-    image_path = sample_root / "images" / "volume" / "page.jpg"
-    line_path = sample_root / "line_labels" / "volume" / "page.txt"
+    corpus_root = workspace / "datasets" / "full-nomnaocr"
+    image_path = corpus_root / "images" / "volume" / "page.jpg"
+    line_path = corpus_root / "line_labels" / "volume" / "page.txt"
     image_path.parent.mkdir(parents=True)
     line_path.parent.mkdir(parents=True)
     Image.new("RGB", (40, 60), "white").save(image_path)
     line_path.write_text("0,0,20,0,20,50,0,50,明X林X\n", encoding="utf-8")
     for number in range(2, 7):
-        extra_image = sample_root / "images" / "volume" / f"page-{number}.jpg"
-        extra_label = sample_root / "line_labels" / "volume" / f"page-{number}.txt"
+        extra_image = corpus_root / "images" / "volume" / f"page-{number}.jpg"
+        extra_label = corpus_root / "line_labels" / "volume" / f"page-{number}.txt"
         Image.new("RGB", (40, 60), "white").save(extra_image)
         extra_label.write_text("0,0,20,0,20,50,0,50,Y\n", encoding="utf-8")
 
     monkeypatch.setenv("LAB_WORKSPACE", str(workspace))
+    monkeypatch.setenv("NOMNAOCR_ROOT", str(corpus_root))
     monkeypatch.setenv("MPLBACKEND", "Agg")
     notebook_path = (
         Path(__file__).parents[1]
@@ -205,7 +206,7 @@ def test_week05_notebook_executes_on_small_fixture(
     assert "Five Chinese reference conversions passed." in output_text
     assert "Corpus pages scanned: 6" in output_text
     assert "Corpus IDS coverage: 2/9 = 22.22%" in output_text
-    assert "Missing IDS: 7 occurrences of 2 distinct characters across 6 page-character pairs" in output_text
-    assert "Missing IDS locations (character | Unicode | occurrences | page path | label path)" in output_text
-    assert "X | U+0058 | 2 | images/volume/page.jpg | line_labels/volume/page.txt" in output_text
-    assert "Y | U+0059 | 1 | images/volume/page-6.jpg | line_labels/volume/page-6.txt" in output_text
+    assert "Missing IDS: 7 occurrences of 2 distinct characters" in output_text
+    assert "Missing IDS examples (character | Unicode | occurrences | image path | label path)" in output_text
+    assert f"X | U+0058 | 2 | {image_path} | {line_path}" in output_text
+    assert f"Y | U+0059 | 5 | {corpus_root / 'images' / 'volume' / 'page-2.jpg'} | {corpus_root / 'line_labels' / 'volume' / 'page-2.txt'}" in output_text

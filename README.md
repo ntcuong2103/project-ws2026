@@ -167,7 +167,7 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 **Topic:** IDS operators, direct versus recursively expanded decompositions, and text-level tokenization for Nôm recognition.
 **Reading:** Morioka, "CHISE" (2008); Zhang et al., "Radical analysis network for zero-shot learning in printed Chinese character recognition" (2018).
 **Starter kit (given):** pinned and checksum-verified `nom-ids` model resources, CJKVI source data, a runnable reference converter, and an unlabeled crop exporter.
-**You implement:** an equivalent character-by-character text→IDS converter in the team repository, then apply it to one real NomNaOCR page.
+**You implement:** an equivalent character-by-character text→IDS converter in the team repository, then audit the full read-only NomNaOCR corpus.
 **Small experiment:** reproduce the exact expanded IDS for `休好字明林`, compare direct and expanded forms, and manually verify five Nôm characters with zi.tools.
 **Lab:** [labs/week-05-recognition-1](labs/week-05-recognition-1/)
 
@@ -175,11 +175,11 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 
 - [ ] Download and verify the pinned IDS resources without changing vocabulary order
 - [ ] Validate text→IDS conversion on the five Chinese reference characters
-- [ ] Report coverage and OOV characters for one NomNaOCR page
+- [ ] Report corpus-wide coverage and the ten most common OOV characters, each with one inspectable image/line-label example
 - [ ] Record five zi.tools checks and explain raw/expanded or glyph-variant differences
 - [ ] Inspect exported detector crops: run the Week 3–4 detector and your team crop exporter first. These boxes remain unlabeled; line transcription order is not a safe box-to-character assignment.
 
-**Deliverable:** Validated IDS converter, one-page coverage report, zi.tools verification table, and unlabeled recognizer inference crops.
+**Deliverable:** Validated IDS converter, corpus-wide coverage report with ten OOV examples, zi.tools verification table, and unlabeled recognizer inference crops.
 
 ### Week 6 — Recognition II
 

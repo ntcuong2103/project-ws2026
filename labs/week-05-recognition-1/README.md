@@ -92,14 +92,15 @@ force a match. Use zi.tools as a manual reference, not as an automated dependenc
 
 ## 4. Audit the NomNaOCR sample, then analyze one page
 
-The notebook scans every durable Week 1 page in `$LAB_WORKSPACE/datasets/nomnaocr-sample`,
-parses every matching `line_labels/<relative-path>.txt`, and reports overall IDS coverage plus
-every missing character/page pair. Each row gives the character's occurrence count on that page,
-the image path, and the corresponding label path, so you can inspect the source directly. Treat
-the occurrence count as evidence of the automated-labeling opportunity: it shows how many text
-positions cannot yet receive an IDS target from the current vocabulary.
+The notebook scans every page in the full read-only NomNaOCR corpus at
+`/data/shared/project2026/nomnaocr`, parses every matching
+`line_labels/<relative-path>.txt`, and reports overall IDS coverage plus the ten most common
+missing characters. Each result includes one representative image path and label path so you can
+inspect the source directly. Treat the occurrence count as evidence of the automated-labeling
+opportunity: it shows how many text positions cannot yet receive an IDS target from the current
+vocabulary. Set `NOMNAOCR_ROOT` only to use an equivalent read-only corpus elsewhere.
 
-Then choose one of those pages by setting `WEEK05_PAGE` to its relative image path. The selected
+Then choose one of those pages by setting `WEEK05_PAGE` to its path relative to `images`. The selected
 page remains the one used for the manual zi.tools checks and unlabeled crop exercise.
 
 A line label contains a polygon and a line transcription, but it does **not** identify the box
@@ -114,7 +115,7 @@ non-overwrite rule keeps earlier predictions safe:
 
 ```bash
 uv run python -m nom_ocr_lab.run_detector predict \
-  --source "$LAB_WORKSPACE/datasets/nomnaocr-sample/images/<relative-page>.jpg" \
+  --source "/data/shared/project2026/nomnaocr/images/<relative-page>.jpg" \
   --model "$LAB_WORKSPACE/models/week04-nakagawa/weights/best.pt" \
   --name week05-one-page --imgsz 1280 --batch 1 --device 0
 ```

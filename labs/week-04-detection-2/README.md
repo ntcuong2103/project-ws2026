@@ -93,9 +93,11 @@ Nakagawa test set is for evaluation, not model selection.
 
 ## 4. Prepare the external NomNaOCR reference set
 
-The server provides the smaller Roboflow export as a ZIP. The helper copies every labeled page
-from all archive partitions into one external test view. The original archive partition remains
-in each relative path so equal filenames cannot collide.
+The server provides the smaller Roboflow export as a ZIP with character-level YOLO annotations.
+This is the detector ground truth: prepare it in the private lab workspace, then use the resulting
+external test view to evaluate both the Week 3 and Week 4 detector checkpoints. The helper safely
+unpacks every labeled page from all archive partitions; the original archive partition remains in
+each relative path so equal filenames cannot collide.
 
 ```bash
 uv run python -m nom_ocr_lab.prepare_detection_data prepare-nomnaocr-archive \
@@ -103,7 +105,8 @@ uv run python -m nom_ocr_lab.prepare_detection_data prepare-nomnaocr-archive \
 ```
 
 Inspect `datasets/nomnaocr-character-detection/manifest.json` and `data.yaml`. Do not use this
-external set for early stopping or hyperparameter selection.
+external set for early stopping or hyperparameter selection; it is the fixed evaluation target,
+not the full line-transcription corpus used by the Week 5 IDS audit.
 
 ## 5. Evaluate before and after
 
