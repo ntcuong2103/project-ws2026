@@ -9,7 +9,7 @@ from PIL import Image
 import pytest
 
 from nom_ocr_lab.recognition_decoding import deduplicate_sequences, greedy_decode, ids_candidates
-from nom_ocr_lab.recognition_runtime import RecognizerRuntime, iter_page_crops, load_config
+from nom_ocr_lab.recognition_runtime import RecognizerRuntime, load_config
 from nom_ocr_lab.run_detector import _prediction_manifest
 
 
@@ -55,9 +55,6 @@ inference:
 def test_yaml_expansion_crop_metadata_and_fake_logits(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LAB_WORKSPACE", str(tmp_path / "workspace"))
     config = load_config(make_config(tmp_path))
-    crops = list(iter_page_crops(config))
-    assert [(crop.page_id, crop.box_id, crop.prediction.confidence) for crop in crops] == [("book/page", 0, 0.8)]
-
     class Backend:
         def logits(self, crops: object, prefixes: object) -> object:
             import torch

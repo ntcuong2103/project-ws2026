@@ -1,10 +1,11 @@
 # Copy this to a private location or pass it with --config. Paths may use
-# ${LAB_WORKSPACE}; do not put real group IDs, checkpoints, or outputs in Git.
+# ${LAB_WORKSPACE} and ${COURSE_REPOSITORY}; do not put real group IDs,
+# checkpoints, or outputs in Git.
 paths:
   detector_checkpoint: ${LAB_WORKSPACE}/models/week04-nakagawa/weights/best.pt
   recognizer_checkpoint: ${LAB_WORKSPACE}/models/recognizer/litbttr.ckpt
-  vocabulary: ${LAB_WORKSPACE}/datasets/ids/nom-ids/vocab_ids.txt
-  expanded_ids: ${LAB_WORKSPACE}/datasets/ids/nom-ids/ids_exp.txt
+  vocabulary: ${COURSE_REPOSITORY}/nom-ids/vocab_ids.txt
+  expanded_ids: ${COURSE_REPOSITORY}/nom-ids/ids_exp.txt
   images: ${LAB_WORKSPACE}/datasets/nomnaocr-character-detection/images/test
   detector_labels: ${LAB_WORKSPACE}/predictions/week04-nomnaocr/labels
   outputs: ${LAB_WORKSPACE}/predictions/week07-recognition

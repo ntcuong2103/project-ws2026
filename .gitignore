@@ -1,4 +1,5 @@
 /PLANS.md
+/staff-local/
 
 # Local Python and notebook state
 .venv/
@@ -6,4 +7,3 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .ipynb_checkpoints/
-

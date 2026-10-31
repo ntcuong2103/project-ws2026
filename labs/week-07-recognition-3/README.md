@@ -4,7 +4,11 @@
 
 > **Interactive Slurm reminder:** Whenever you use `srun --pty ...`, run `exit` as soon as you finish. This releases the allocation; do not leave an interactive session idle.
 
-**Session:** each group reviews Week 6 (5 min/group), then this lab.
+**Session:** each group begins with a five-minute Week 6 review, then works through this lab.
+
+You now have the pieces of the recognizer pipeline. This week, you will turn its next-token
+scores into complete IDS predictions, connect those predictions back to possible Unicode
+characters, and see the full page-to-recognition flow working together.
 
 ## Goals
 
@@ -15,22 +19,26 @@
 ## Decoder contract
 
 Start every sequence with `sos_idx`. At each step, call the supplied
-`next_token_logits(crops, prefixes)` primitive, choose the argmax token, append it to the
-prefix, and stop when the selected token is `eos_idx` or `max_length` is reached. Do not emit
-SOS or EOS as IDS tokens. Do not call the checkpoint's built-in `greedy_search` or beam search.
+`next_token_logits(crops, prefixes)` primitive, choose the argmax token, and append it to the
+prefix. Stop when the selected token is `eos_idx` or when you reach `max_length`. SOS and EOS
+guide the decoder, so do not include them in the IDS tokens you emit. Build this loop yourself;
+do not call the checkpoint’s built-in `greedy_search` or beam search.
 
-Use the fixed fixtures to prove these cases exactly: a normal EOS-terminated sequence, immediate EOS,
-repeated emitted tokens, and an EOS-free sequence stopped by the maximum length.
+Use the fixed fixtures to check four important edge cases exactly: a normal EOS-terminated
+sequence, immediate EOS, repeated emitted tokens, and an EOS-free sequence that stops at the
+maximum length.
 
 ## IDS composition and output contract
 
-Join emitted vocabulary tokens into an IDS string, then use the reverse expanded-IDS mapping.
-One IDS can map to multiple Unicode candidates; preserve the entire ordered candidate list.
-An IDS with no direct Unicode match must be reported with an empty candidate list, not discarded.
+Join the emitted vocabulary tokens into an IDS string, then look it up in the reverse
+expanded-IDS mapping. One IDS can lead to several Unicode candidates, so preserve the whole
+ordered list. If there is no direct Unicode match, keep the result and record an empty candidate
+list; an unmatched sequence is still useful evidence.
 
-Write JSONL or TSV records with `page_id`, `box_id`, normalized and pixel boxes, detector
-confidence, raw token IDs, IDS string, and Unicode candidates. The Week 4 prediction manifest
-is the input contract, so every page is accounted for even if it has no detector boxes.
+Write JSONL or TSV records containing `page_id`, `box_id`, normalized and pixel boxes, detector
+confidence, raw token IDs, IDS string, and Unicode candidates. Use the Week 4 prediction
+manifest as your input contract so every page remains accounted for, including pages with no
+detector boxes.
 
 ## Tasks
 
@@ -42,5 +50,6 @@ is the input contract, so every page is accounted for even if it has no detector
 
 ## Deliverable
 
-Greedy decoder with fixture tests, full per-box recognition output, a combined detection and
-recognition demo, and midterm slides. Do not commit predictions, weights, or private configs.
+A greedy decoder with fixture tests, full per-box recognition output, a combined detection and
+recognition demo, and midterm slides. Keep predictions, weights, and private configuration out
+of Git.

@@ -19,11 +19,6 @@ from nom_ocr_lab.recognition import (
     reverse_ids,
     text_to_ids,
 )
-from nom_ocr_lab.recognition_crops import (
-    expanded_crop_box,
-    export_crops,
-    parse_prediction,
-)
 
 
 class Download(BytesIO):
@@ -102,77 +97,11 @@ def test_dictionary_loaders_conversion_and_reverse_mapping(tmp_path: Path) -> No
     records = text_to_ids("明 X", mapping)
     assert [record.character for record in records] == ["明", "X"]
     assert records[0].codepoint == "U+660E"
+    assert records[0].zi_tools_url == "https://zi.tools/zi/%E6%98%8E"
     assert records[0].tokens == ("⿰", "日", "月")
     assert records[0].status == "covered"
     assert records[1].ids is None
     assert records[1].status == "oov"
-
-
-@pytest.mark.parametrize(
-    ("row", "confidence"),
-    [
-        ("0 0.5 0.5 0.2 0.4", None),
-        ("0 0.5 0.5 0.2 0.4 0.875", 0.875),
-    ],
-)
-def test_prediction_parser_accepts_five_and_six_fields(
-    row: str, confidence: float | None
-) -> None:
-    assert parse_prediction(row).confidence == confidence
-
-
-@pytest.mark.parametrize(
-    ("row", "message"),
-    [
-        ("0 0.5 0.5 0.2", "5 or 6"),
-        ("0 nan 0.5 0.2 0.2", "finite"),
-        ("0 0.1 0.5 0.4 0.2", "outside image width"),
-        ("0 0.5 0.5 0.2 0.2 1.1", "confidence"),
-    ],
-)
-def test_prediction_parser_rejects_invalid_rows(row: str, message: str) -> None:
-    with pytest.raises(ValueError, match=message):
-        parse_prediction(row)
-
-
-def test_crop_export_preserves_ids_confidence_and_clips(tmp_path: Path) -> None:
-    image_path = tmp_path / "page.jpg"
-    Image.new("RGB", (100, 80), "white").save(image_path)
-    labels_path = tmp_path / "page.txt"
-    labels_path.write_text(
-        "0 0.20 0.25 0.20 0.25 0.90\n0 0.75 0.50 0.10 0.25\n",
-        encoding="utf-8",
-    )
-
-    manifest = export_crops(image_path, labels_path, tmp_path / "crops", expand_ratio=1.2)
-
-    assert manifest["kind"] == "unlabeled-recognizer-inference-crops"
-    assert manifest["labeled"] is False
-    assert [entry["box_id"] for entry in manifest["entries"]] == [0, 1]
-    assert manifest["entries"][0]["confidence"] == 0.9
-    assert manifest["entries"][1]["confidence"] is None
-    assert (tmp_path / "crops" / "crops" / "box-0000.png").is_file()
-    assert (tmp_path / "crops" / "manifest.tsv").is_file()
-    with pytest.raises(FileExistsError, match="non-empty"):
-        export_crops(image_path, labels_path, tmp_path / "crops")
-
-    edge = parse_prediction("0 0.1 0.1 0.2 0.2")
-    _, expanded = expanded_crop_box(
-        edge, image_width=100, image_height=80, expand_ratio=1.2
-    )
-    assert expanded[0] == 0 or expanded[1] == 0
-
-
-def test_crop_export_validates_before_creating_output(tmp_path: Path) -> None:
-    image_path = tmp_path / "page.jpg"
-    Image.new("RGB", (10, 10), "white").save(image_path)
-    labels_path = tmp_path / "bad.txt"
-    labels_path.write_text("0 0.5 0.5 0.01 0.01\n", encoding="utf-8")
-    output = tmp_path / "output"
-
-    with pytest.raises(ValueError, match="empty pixel box"):
-        export_crops(image_path, labels_path, output)
-    assert not output.exists()
 
 
 def test_week05_handout_contains_required_sources_and_safety_boundary() -> None:
@@ -182,15 +111,34 @@ def test_week05_handout_contains_required_sources_and_safety_boundary() -> None:
     for expected in (
         "CHISE: Character Processing Based on Character Ontology",
         "Radical analysis network for zero-shot learning",
-        "cjkvi/cjkvi-ids",
-        "chise/ids",
-        "yi-bai/ids",
-        "zi.tools",
+        "Ground-truth resources",
+        "nom-ids/",
         "ids_exp.txt",
         "vocab_ids.txt",
         "Do not assign",
     ):
         assert expected in handout
+
+
+def test_week05_notebook_uses_bundled_ids_resources_outside_repo(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    workspace = tmp_path / "lab-exercise"
+    monkeypatch.setenv("LAB_WORKSPACE", str(workspace))
+    monkeypatch.chdir(tmp_path)
+    notebook_path = (
+        Path(__file__).parents[1]
+        / "labs"
+        / "week-05-recognition-1"
+        / "ids_and_nomnaocr_crops.ipynb"
+    )
+    notebook = nbformat.read(notebook_path, as_version=4)
+    cells = {cell["id"]: "".join(cell["source"]) for cell in notebook.cells}
+    namespace: dict[str, object] = {}
+
+    exec(cells["setup"], namespace)
+    assert namespace["ids_root"] == notebook_path.parents[2] / "nom-ids"
+    exec(cells["load-resources"], namespace)
 
 
 def test_week05_notebook_executes_on_small_fixture(
@@ -231,14 +179,6 @@ def test_week05_notebook_executes_on_small_fixture(
     Image.new("RGB", (40, 60), "white").save(image_path)
     line_path.write_text("0,0,20,0,20,50,0,50,明林\n", encoding="utf-8")
 
-    prediction_path = tmp_path / "prediction.txt"
-    prediction_path.write_text("0 0.5 0.5 0.2 0.3 0.9\n", encoding="utf-8")
-    export_crops(
-        image_path,
-        prediction_path,
-        workspace / "datasets" / "nomnaocr-recognition-crops" / "page",
-    )
-
     monkeypatch.setenv("LAB_WORKSPACE", str(workspace))
     monkeypatch.setenv("MPLBACKEND", "Agg")
     notebook_path = (
@@ -250,7 +190,7 @@ def test_week05_notebook_executes_on_small_fixture(
     notebook = nbformat.read(notebook_path, as_version=4)
     executed = NotebookClient(
         notebook, timeout=120, kernel_name="python3", allow_errors=False
-    ).execute(cwd=str(notebook_path.parents[2]))
+    ).execute(cwd=str(workspace))
     output_text = "".join(
         output.get("text", "")
         for cell in executed.cells
@@ -259,4 +199,4 @@ def test_week05_notebook_executes_on_small_fixture(
     )
     assert "Five Chinese reference conversions passed." in output_text
     assert "Page lookup coverage: 2/2 = 100.00%" in output_text
-    assert "Displayed 1 of 1 crops." in output_text
+    assert "No crop manifest yet:" in output_text

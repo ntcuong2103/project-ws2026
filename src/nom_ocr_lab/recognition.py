@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import re
 from typing import BinaryIO, Callable
+from urllib.parse import quote
 from urllib.request import urlopen
 
 
@@ -73,6 +74,7 @@ RESOURCE_SPECS = (
 class CharacterIDS:
     character: str
     codepoint: str
+    zi_tools_url: str
     ids: str | None
     tokens: tuple[str, ...]
     status: str
@@ -208,7 +210,7 @@ def reverse_ids(mapping: dict[str, str]) -> dict[str, tuple[str, ...]]:
 
 
 def text_to_ids(text: str, mapping: dict[str, str]) -> list[CharacterIDS]:
-    """Convert non-whitespace Unicode code points to structured IDS records."""
+    """Convert code points to records, including a direct zi.tools lookup URL."""
 
     records = []
     for character in text:
@@ -219,6 +221,7 @@ def text_to_ids(text: str, mapping: dict[str, str]) -> list[CharacterIDS]:
             CharacterIDS(
                 character=character,
                 codepoint=f"U+{ord(character):04X}",
+                zi_tools_url=f"https://zi.tools/zi/{quote(character)}",
                 ids=ids,
                 tokens=tuple(ids) if ids is not None else (),
                 status="covered" if ids is not None else "oov",

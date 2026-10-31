@@ -18,7 +18,6 @@ import yaml
 from PIL import Image, ImageOps
 
 from .recognition import load_expanded_ids, load_vocabulary
-from .recognition_crops import DetectionPrediction, expanded_crop_box, read_predictions
 
 
 @dataclass(frozen=True)
@@ -39,10 +38,14 @@ class RecognitionConfig:
 
 @dataclass(frozen=True)
 class RecognitionCrop:
+    """Crop metadata produced by a team's implementation."""
+
     page_id: str
     box_id: int
     image_path: Path
-    prediction: DetectionPrediction
+    class_id: int
+    confidence: float | None
+    normalized_box: tuple[float, float, float, float]
     pixel_box: tuple[int, int, int, int]
     expanded_box: tuple[int, int, int, int]
     image: Image.Image
@@ -98,34 +101,6 @@ def load_config(path: Path, *, require_files: bool = True) -> RecognitionConfig:
                 "tokens (base vocabulary plus PAD/SOS/EOS)"
             )
     return config
-
-
-def iter_page_crops(config: RecognitionConfig) -> Iterable[RecognitionCrop]:
-    """Yield deterministic expanded crops for every page in the detector contract."""
-
-    image_root = config.paths["images"]
-    label_root = config.paths["detector_labels"]
-    suffixes = {".jpg", ".jpeg", ".png", ".tif", ".tiff"}
-    for image_path in sorted(image_root.rglob("*")):
-        if not image_path.is_file() or image_path.suffix.lower() not in suffixes:
-            continue
-        relative = image_path.relative_to(image_root)
-        labels = label_root / relative.with_suffix(".txt")
-        if not labels.is_file():
-            raise FileNotFoundError(f"Missing detector label for {relative}: {labels}")
-        predictions = read_predictions(labels)
-        with Image.open(image_path) as source:
-            page = source.convert("RGB")
-        for box_id, prediction in enumerate(predictions):
-            pixel_box, expanded_box = expanded_crop_box(
-                prediction, image_width=page.width, image_height=page.height,
-                expand_ratio=float(config.preprocessing.get("expand_ratio", 1.2)),
-            )
-            yield RecognitionCrop(
-                page_id=relative.with_suffix("").as_posix(), box_id=box_id,
-                image_path=image_path, prediction=prediction, pixel_box=pixel_box,
-                expanded_box=expanded_box, image=page.crop(expanded_box),
-            )
 
 
 def preprocess(crop: RecognitionCrop, config: RecognitionConfig) -> Any:

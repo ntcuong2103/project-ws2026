@@ -4,7 +4,11 @@
 
 > **Interactive Slurm reminder:** Whenever you use `srun --pty ...`, run `exit` as soon as you finish. This releases the allocation; do not leave an interactive session idle.
 
-**Session:** each group reviews Week 4 (5 min/group), then completes this lab.
+**Session:** each group begins with a five-minute Week 4 review, then works through this lab.
+
+This week moves from finding characters on a page to describing what a character is made of.
+You will use IDS as a shared structural language, then prepare detector crops that we can
+recognize in the next two weeks.
 
 ## Goals
 
@@ -16,42 +20,32 @@ By the end of the lab, you can:
 - measure dictionary coverage on one real NomNaOCR page; and
 - export one page of detector boxes as unlabeled crops for recognition.
 
-This is **text-level IDS tokenization**, not visual radical segmentation. The supplied
-repositories do not contain radical bounding boxes or a model that cuts a character image
-into radical regions. The recognizer learns to predict IDS tokens from the complete crop.
+One important distinction: this is **text-level IDS tokenization**, not visual radical
+segmentation. You are not expected to draw boxes around radicals—the supplied materials do
+not include those boxes or a model that produces them. Instead, the recognizer will learn IDS
+tokens from a complete character crop.
 
 ## Required reading
 
 1. Tomohiko Morioka, [“CHISE: Character Processing Based on Character Ontology”](https://link.springer.com/chapter/10.1007/978-3-540-78159-2_14), LKR 2008, pp. 148–162.
 2. Jianshu Zhang, Yixing Zhu, Jun Du, and Lirong Dai, [“Radical analysis network for zero-shot learning in printed Chinese character recognition”](https://arxiv.org/abs/1711.01889), ICME 2018.
 
-Read for two ideas: why coded character sets alone are insufficient for historical character
-work, and why predicting a shared structural vocabulary can recognize more classes than an
-atomic one-class-per-character formulation.
+As you read, focus on two questions: Why are coded character sets alone not enough for
+historical characters? And how can a shared structural vocabulary help recognize more classes
+than treating every character as an entirely separate label?
 
-## Data references and source of truth
+## Ground-truth resources
 
-- [cjkvi/cjkvi-ids](https://github.com/cjkvi/cjkvi-ids): direct/raw IDS data, including
-  `ids.txt` and the requested `ids-ext-cdef.txt`.
-- [chise/ids](https://github.com/chise/ids): the CHISE IDS database and ontology source.
-- [yi-bai/ids](https://github.com/yi-bai/ids): alternative IDS lists at several normalization
-  levels.
-- [zi.tools](https://zi.tools/): interactive Unicode, glyph, and IDS lookup for manual checks.
-
-For executable course results, do not merge or reorder these resources yourself. The source
-of truth is `ntcuong2103/nom-ids` release commit
-`6f7f7f8242e95a95eb6920092cd290d9e4e49deb`:
+For the exercises, use the two ground-truth files bundled in
+[`nom-ids/`](../../nom-ids/). Their order is part of the recognizer setup, so leave the files
+as they are:
 
 - `ids_exp.txt` maps one Unicode character to its recursively expanded IDS;
 - `vocab_ids.txt` gives the exact checkpoint-sensitive token order.
 
-Reverse lookup must map one IDS to a list of candidate characters: distinct Unicode
-characters can share the same expanded sequence, so a plain `{IDS: character}` dictionary
-would silently discard candidates.
-
-The crop convention comes from `ntcuong2103/nom-ocr-inference` commit
-`24f417ec8b58590b7786a186915badcee625df00`. CJKVI commit
-`86b4d16159f0079437870408f0ca186e529015db` is downloaded for provenance and comparison.
+When you build the reverse lookup, let one IDS map to a list of candidate characters. Different
+Unicode characters can share an expanded sequence; a simple `{IDS: character}` dictionary
+would quietly lose some of those possibilities.
 
 ## 1. What is an IDS?
 
@@ -66,30 +60,19 @@ prefix expressions. “Radical vocabulary” is useful shorthand, but the model 
 contains IDCs, strokes, components, and terminal ideographs that are not radicals in the
 strict linguistic sense.
 
-There are two relevant representations:
+In this course, you will work with **expanded IDS**, which recursively replaces decomposable
+components. It is the sequence format used as recognizer ground truth.
 
-- **Direct/raw IDS:** one decomposition layer from CJKVI; components may themselves be
-  decomposable.
-- **Expanded IDS:** recursively replaces decomposable components using the convention used
-  to train the recognizer. This is the ground-truth sequence used by the code.
+## 2. Use the bundled resources
 
-## 2. Download the pinned resources
-
-Start from the course repository in a shell where `LAB_WORKSPACE` is set:
-
-```bash
-uv run python -m nom_ocr_lab.prepare_recognition_resources \
-  --output "$LAB_WORKSPACE/datasets/ids"
-```
-
-The command downloads all four files, verifies their SHA-256 checksums, and records their
-URLs, commits, sizes, and hashes in `manifest.json`. A matching file is reused. A mismatched
-file is never silently replaced. Generated data belongs under `$LAB_WORKSPACE`, not in Git.
+The files already live under `nom-ids/` in the course repository, so there is nothing to
+download. Treat them as versioned course inputs: inspect and use them in place, but do not
+copy, edit, merge, or reorder them in `$LAB_WORKSPACE`.
 
 ## 3. Run the guided notebook
 
-Open [ids_and_nomnaocr_crops.ipynb](ids_and_nomnaocr_crops.ipynb). It provides a runnable
-reference implementation and walks through:
+Open [ids_and_nomnaocr_crops.ipynb](ids_and_nomnaocr_crops.ipynb). It is a runnable guide that
+walks you through:
 
 1. direct versus expanded IDS;
 2. the exact expected conversions for `休好字明林`;
@@ -98,31 +81,31 @@ reference implementation and walks through:
 5. manual verification of at least five covered Nôm characters with zi.tools; and
 6. a contact sheet of the detector crops exported below.
 
-Reimplement the demonstrated text-to-IDS converter in your team's separate project
-repository. Compare its structured output with the reference notebook. Preserve character
-boundaries; do not concatenate a whole line without retaining which IDS belongs to which
-Unicode code point.
+Reuse the provided `text_to_ids` converter in your team’s separate project repository. Its
+structured output preserves character boundaries: rather than flattening a line into one long
+string, it retains which IDS belongs to each Unicode code point and includes a direct zi.tools
+lookup link for that character.
 
-zi.tools may show a direct IDS, a glyph-region variant, or another normalization. Record such
-differences rather than changing the authoritative expanded course dictionary to force a
-match. zi.tools is a manual reference, not an automated dependency.
+zi.tools may show a direct IDS, a glyph-region variant, or another normalization. Those
+differences are useful observations—record them rather than changing the course dictionary to
+force a match. Use zi.tools as a manual reference, not as an automated dependency.
 
 ## 4. Analyze one real NomNaOCR page
 
-Choose one of the five durable Week 1 pages below
-`$LAB_WORKSPACE/datasets/nomnaocr-sample`. Give the notebook its relative image path. It will
-find the matching `line_labels/<relative-path>.txt`, parse all transcriptions, and report each
-non-whitespace code point as covered or OOV.
+Choose one of the five durable Week 1 pages in
+`$LAB_WORKSPACE/datasets/nomnaocr-sample`, then give the notebook its relative image path. The
+notebook finds the matching `line_labels/<relative-path>.txt`, parses its transcriptions, and
+shows which non-whitespace code points are covered and which are out of vocabulary (OOV).
 
-A line label contains a polygon and a line transcription. It does **not** say which detected
-box owns which character. Do not assign transcription characters directly to detector boxes.
-Missed, duplicate, split, or merged detections make positional pairing unreliable; sequence
-alignment handles that in Weeks 9–11.
+A line label contains a polygon and a line transcription, but it does **not** identify the box
+that belongs to each character. Do not assign transcription characters directly to detector
+boxes. Missed, duplicate, split, or merged detections make positional pairing
+unreliable; sequence alignment will address that challenge in Weeks 9–11.
 
 ## 5. Export one page of unlabeled inference crops
 
-Run the stronger Week 3 or Week 4 detector on the selected page. Use a new run name so the
-detector's non-overwrite rule protects earlier predictions:
+Run your stronger Week 3 or Week 4 detector on the selected page. Choose a new run name so its
+non-overwrite rule keeps earlier predictions safe:
 
 ```bash
 uv run python -m nom_ocr_lab.run_detector predict \
@@ -131,38 +114,33 @@ uv run python -m nom_ocr_lab.run_detector predict \
   --name week05-one-page --imgsz 1280 --batch 1 --device 0
 ```
 
-Then pass the same image and its generated prediction label to the supplied exporter:
+Create a small crop-export script in your team repository. Give it a page image and the
+detector's YOLO label file. The label file may contain either five values per detection
+(`class x_center y_center width height`) or a sixth confidence value from prediction output.
 
-```bash
-uv run python -m nom_ocr_lab.export_recognition_crops \
-  --image "$LAB_WORKSPACE/datasets/nomnaocr-sample/images/<relative-page>.jpg" \
-  --labels "$LAB_WORKSPACE/predictions/week05-one-page/labels/<page-name>.txt" \
-  --output "$LAB_WORKSPACE/datasets/nomnaocr-recognition-crops/<page-name>" \
-  --expand-ratio 1.2
-```
+For each detected box, make a slightly larger square crop (scale it by `1.2` and keep it inside
+the page), then save it as an RGB PNG. Also write a JSON or TSV manifest that records the crop's
+`box_id`, original normalized box, pixel box, final crop coordinates, and confidence when one is
+available. Do not assign a character label to a crop yet: matching boxes to transcription
+characters is later work. Week 6 will handle the recognizer's image preprocessing.
 
-The exporter accepts ground-truth-style five-field YOLO rows and prediction rows with a sixth
-confidence field. It retains `box_id`, expands each box to a clipped square by `1.2`, writes
-RGB PNG crops, and creates both JSON and TSV manifests. These crops deliberately have no
-character identity. Week 6 applies the recognizer's tensor preprocessing.
-
-Use an interactive CPU allocation for the notebook and submit detector inference through the
-same Slurm policy used in Weeks 3–4. Do not request a GPU for dictionary conversion or crop
-visualization.
+Use a short interactive CPU allocation for the notebook. Submit detector inference through the
+same Slurm workflow you used in Weeks 3–4; dictionary conversion and crop visualization do not
+need a GPU.
 
 ## Tasks
 
 - [ ] Read both assigned papers and explain direct versus expanded IDS.
-- [ ] Download and verify the pinned IDS resources.
+- [ ] Inspect the bundled `ids_exp.txt` and `vocab_ids.txt` resources without modifying them.
 - [ ] Reproduce the five exact Chinese reference conversions.
-- [ ] Reimplement text→IDS conversion in the team project repository.
+- [ ] Reuse text→IDS conversion in the team project repository.
 - [ ] Produce a one-page Nôm coverage/OOV table.
 - [ ] Record five zi.tools checks, including any normalization or glyph-variant difference.
-- [ ] Run the Week 3–4 detector on that page and inspect the exported crop contact sheet.
+- [ ] Implement the crop exporter, run the Week 3–4 detector on that page, and inspect its crop contact sheet.
 - [ ] Explain why the crops remain unlabeled until sequence alignment.
 
 ## Deliverable
 
-A validated IDS converter, one-page transcription coverage report, five-row zi.tools
-verification table, and unlabeled recognizer inference crops with their manifest and contact
-sheet. Do not commit downloaded dictionaries, predictions, or crops.
+A validated IDS converter; a one-page transcription coverage report; a five-row zi.tools
+verification table; and unlabeled recognizer inference crops with their manifest and contact
+sheet. Keep generated predictions and crops out of Git.
