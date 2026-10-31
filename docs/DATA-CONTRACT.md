@@ -15,11 +15,10 @@ Replace `X` with the assigned group number.
 │   │   ├── line_labels/
 │   │   ├── detection_labels/
 │   │   └── manifest.json
-│   ├── week03-source-sample/             # copied raw MTH labels for hands-on organization
+│   ├── week03-source-sample/             # 24 copied raw MTH1200 image/label pairs
 │   ├── mth-practice/                     # student-built 18/2/4 YOLO structure
-│   ├── mth-course-full/                  # MTH1200 90/10 train/val + MTH1000 test
 │   ├── nomnaocr-character-detection/     # external Roboflow archive as one test view
-│   ├── nakagawa-character-detection/    # supplied train/val/test split
+│   ├── nakagawa-character-detection/    # student-built view of supplied train/val/test manifests
 │   └── nomnaocr-recognition-crops/       # one-page unlabeled inference crops
 │       └── <page>/
 │           ├── crops/
@@ -48,7 +47,8 @@ of creating another copy.
 
 ## Ownership and safety
 
-- `/data/shared/project2026` is read-only source data.
+- `/data/shared/project2026` is read-only source data for students. Course staff may publish
+  only the canonical `mth-full-project-ws2026` dataset there through the explicit staff helper.
 - `/home/projectgX` contains Git repositories, scripts, tests, and documentation.
 - `/data/projectgX/lab-exercise` contains lab datasets, models, predictions, and job logs.
 - Do not commit generated data, model weights, or predictions.
@@ -65,9 +65,11 @@ of creating another copy.
   class `0` (`character`), and keep their generated `data.yaml` beside the manifest.
 - The Week 3 course protocol uses only MTH1200 for training and validation; MTH1000 remains
   an untouched test collection. This teaching split is not the canonical MTHv2 paper split.
-- `week03-source-sample` contains 24 copied raw MTH1200 page/label pairs. Students choose and
-  organize the 18/2/4 train/validation/test split when converting them into `mth-practice`; the
-  validator enforces the split counts and that every staged page is used exactly once.
+- `week03-source-sample` contains 24 copied raw MTH1200 image/label pairs. It is an input only:
+  students choose and organize the 18/2/4 train/validation/test split when converting labels into
+  `mth-practice`. The validator enforces the split counts and that every staged page is used
+  exactly once. The shared `/data/shared/project2026/mth-full-project-ws2026`, not
+  `mth-practice`, is the training/evaluation view for the Week 3 Slurm jobs.
 - The repository's `nom-ids/` directory contains the exact expanded-IDS mapping and vocabulary
   order used by the recognizer checkpoint; never sort, regenerate, or copy either file into
   generated workspace data.

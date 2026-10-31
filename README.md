@@ -53,8 +53,8 @@ The table gives the overview; the per-week details (reading, provided materials,
 | --- | --- | --- | --- | --- | --- |
 | 1 | Orientation | Course kickoff; journal-club read of the source paper; intro to Hán-Nôm OCR and IDS decomposition; team formation | Verify access; prepare five image/line-label/detection-label triplets; visualize line polygons and character boxes | Teams formed; environment verified; five sample triplets inspected and visualized | [labs/week-01-orientation](labs/week-01-orientation/) |
 | 2 | Foundations | Two-paper problem formulation; NomNaOCR readiness; character-level edit distance | Explain how line supervision and detector output become pseudo ground truth; audit pairing/labels and five sample triplets; analyze OCR-style transcription errors | Executed readiness/edit-distance notebook with problem statement and pseudo-ground-truth pipeline explanation | [labs/week-02-foundations](labs/week-02-foundations/) |
-| 3 | Detection I | YOLO dataset structure and single-class character detection | Organize a raw 18/2/4 sample; verify box conversion; train on MTH1200; compare COCO and trained checkpoints on MTH1000 | Validated practice data, MTH checkpoint, Slurm artifacts, and before/after metrics | [Week 3 lab](labs/week-03-detection-1/) |
-| 4 | Detection II | Nôm adaptation and detection metrics | Inspect Nakagawa class collapse; fine-tune the Week 3 checkpoint; calculate IoU; compare both checkpoints on external NomNaOCR data | Fine-tuned checkpoint, Nakagawa test metrics, NomNaOCR comparison, and prediction handoff | [Week 4 lab](labs/week-04-detection-2/) |
+| 3 | Detection I | YOLO dataset structure, single-class character detection, and metrics | Organize a raw 18/2/4 MTH1200 practice sample; verify box conversion; train on MTH1200; calculate IoU; compare COCO and trained checkpoints on MTH1000 | Validated practice data, MTH checkpoint, student-authored Slurm artifacts, and interpreted before/after metrics | [Week 3 lab](labs/week-03-detection-1/) |
+| 4 | Detection II | Nôm adaptation and external evaluation | Inspect Nakagawa class collapse; fine-tune the Week 3 checkpoint; compare both checkpoints on external NomNaOCR data | Fine-tuned checkpoint, student-authored jobs, Nakagawa test metrics, NomNaOCR comparison, and prediction handoff | [Week 4 lab](labs/week-04-detection-2/) |
 | 5 | Recognition I | IDS operators, direct/expanded decompositions, and recognizer token vocabulary | Validate Chinese examples; analyze one Nôm page; verify with zi.tools; export unlabeled detector crops | IDS converter, page coverage report, manual checks, and inference crops | [labs/week-05-recognition-1](labs/week-05-recognition-1/) |
 | 6 | Recognition II | Recognizer logits, token vocabulary, and forward passes | Inspect synthetic, Chinese, Nôm, and real-box logits using the given checkpoint | Executed logits notebook + one-page top-token report | [labs/week-06-recognition-2](labs/week-06-recognition-2/) |
 | 7 | Recognition III | Autoregressive greedy decoding, deduplication, IDS→Unicode composition | Implement the decoder from next-token logits; run the full detector→recognizer pipeline; prepare midterm slides | Decoder tests + full per-box output + combined demo | [labs/week-07-recognition-3](labs/week-07-recognition-3/) |
@@ -132,36 +132,35 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 
 **Topic:** YOLOv11n single-class character detection, dataset organization, and transfer learning.
 **Reading:** Khanam & Hussain, "YOLOv11: An Overview of the Key Architectural Enhancements" (2024); Ma et al., ICFHR (2020).
-**Starter kit (given):** deterministic raw-sample staging, label conversion/validation helpers, full-data preparation, and Slurm templates.
-**You implement:** organize the small dataset, verify box conversion, run MTH1200 training, and interpret the MTH1000 before/after evaluation.
+**Starter kit (given):** deterministic raw-sample staging and label conversion/validation helpers.
+**You implement:** organize the small dataset, verify box conversion, write MTH1200 training/evaluation jobs, and interpret MTH1000 metrics.
 **Lab:** [Week 3 lab](labs/week-03-detection-1/)
 
 **Tasks:**
 
-- [ ] Organize the staged raw sample into 18 MTH1200 train, 2 MTH1200 validation, and 4 MTH1000 test pages
+- [ ] Organize the staged 24-page MTH1200 sample into 18 training, 2 validation, and 4 practice-test pages
 - [ ] Convert one pixel box by hand, convert the remaining raw labels, and pass the dataset validator
-- [ ] Prepare deterministic 90/10 MTH1200 train/validation data with full MTH1000 as test
-- [ ] Submit at least one YOLO11n training run with `sbatch` and inspect local Ultralytics artifacts
-- [ ] Compare untouched COCO weights with the selected MTH checkpoint on MTH1000
+- [ ] Inspect the shared 90/10 MTH1200 train/validation and full MTH1000 test view
+- [ ] Write and submit MTH1200 training and evaluation jobs with `sbatch`; inspect local Ultralytics artifacts
+- [ ] Calculate IoU by hand; explain precision, recall, mAP50, and mAP50–95 before comparing untouched COCO weights with the selected MTH checkpoint on MTH1000
 
 **Deliverable:** validated practice structure, MTH1200-trained detector with `best.pt` and `last.pt`, Slurm artifacts, and an interpreted MTH1000 before/after comparison.
 
 ### Week 4 — Detection II
 
-**Topic:** Character-level IoU, precision, recall, mAP, domain adaptation, and detector error modes.
-**Starter kit (given):** Nakagawa and NomNaOCR preparation helpers plus training/evaluation Slurm templates.
-**You implement:** verify Nakagawa's single-class conversion, fine-tune the Week 3 checkpoint, interpret detection metrics, and compare both checkpoints on NomNaOCR.
+**Topic:** Domain adaptation, external evaluation, and detector error modes.
+**Starter kit (given):** Nakagawa and NomNaOCR preparation helpers.
+**You implement:** verify Nakagawa's single-class conversion, write fine-tuning/evaluation jobs, and compare both checkpoints on NomNaOCR.
 **Lab:** [Week 4 lab](labs/week-04-detection-2/)
 
 **Tasks:**
 
-- [ ] Fine-tune the Week 3 detector on TUAT-Nakagawa and report held-out test metrics
-- [ ] Calculate IoU by hand and explain confidence, precision–recall, AP, mAP50, and mAP50–95
+- [ ] Write jobs to fine-tune the Week 3 detector on TUAT-Nakagawa and report held-out test metrics
 - [ ] Prepare the supplied NomNaOCR archive as one external test set
 - [ ] Evaluate the MTH and Nakagawa checkpoints on identical NomNaOCR data
 - [ ] Interpret precision, recall, and localization changes without treating the paper numbers as a reproduction target
 
-**Deliverable:** Nakagawa-fine-tuned detector, Slurm artifacts, Nakagawa test metrics, NomNaOCR before/after comparison, and the detector prediction handoff.
+**Deliverable:** Nakagawa-fine-tuned detector, student-authored Slurm artifacts, Nakagawa test metrics, NomNaOCR before/after comparison, and the detector prediction handoff.
 
 ### Week 5 — Recognition I
 
