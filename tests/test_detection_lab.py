@@ -9,13 +9,13 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
+import nom_ocr_lab.detection as detection_module
 from nom_ocr_lab.detection import (
     convert_xyxy_label,
     normalize_yolo_label,
     prepare_mth_course_dataset,
     prepare_mth1000,
     prepare_nomnaocr_archive,
-    prepare_yolo_view,
     split_pairs,
     stage_mth_practice_sample,
     validate_mth_practice_dataset,
@@ -48,16 +48,18 @@ def make_mth1000(root: Path, count: int = 30) -> Path:
     return root
 
 
-def make_yolo_source(
-    root: Path, names: list[str], *, label_dir: str = "detection_labels"
-) -> Path:
-    for name in names:
-        image_path = root / "images" / f"{name}.jpg"
-        label_path = root / label_dir / f"{name}.txt"
-        image_path.parent.mkdir(parents=True, exist_ok=True)
-        label_path.parent.mkdir(parents=True, exist_ok=True)
-        Image.new("RGB", (40, 60), "white").save(image_path)
-        label_path.write_text("7503 0.500000 0.500000 0.200000 0.300000\n", encoding="utf-8")
+def make_ready_mth(root: Path, count: int = 30) -> Path:
+    """Create MTH-shaped sources with ready single-class YOLO labels."""
+
+    make_mth1000(root, count)
+    for raw_label in (root / "label_char").rglob("*.txt"):
+        ready_label = root / "labels" / raw_label.relative_to(root / "label_char")
+        ready_label.parent.mkdir(parents=True, exist_ok=True)
+        ready_label.write_text(
+            "0 0.200000 0.200000 0.200000 0.200000\n"
+            "0 0.700000 0.600000 0.400000 0.400000\n",
+            encoding="utf-8",
+        )
     return root
 
 
@@ -105,6 +107,23 @@ def test_detector_training_exposes_reproducible_optional_tuning_controls() -> No
     assert args.optimizer == "auto"
     assert args.lr0 == pytest.approx(0.01)
     assert args.mosaic == pytest.approx(1.0)
+
+
+def test_prepare_mth_full_exposes_explicit_staff_shared_output_flag() -> None:
+    from nom_ocr_lab.prepare_detection_data import build_parser
+
+    prepared = build_parser().parse_args(
+        [
+            "prepare-mth-full",
+            "--train-source",
+            "mth1200",
+            "--test-source",
+            "mth1000",
+            "--allow-shared-output",
+        ]
+    )
+
+    assert prepared.allow_shared_output is True
 
 
 @pytest.mark.parametrize(
@@ -219,15 +238,11 @@ def test_practice_validator_checks_structure_labels_and_manifest(tmp_path: Path)
 
 
 def test_course_mth_uses_train_source_for_90_10_and_all_test_source(tmp_path: Path) -> None:
-    train_source = make_mth1000(tmp_path / "mth1200", count=30)
-    test_source = make_mth1000(tmp_path / "mth1000", count=10)
+    train_source = make_ready_mth(tmp_path / "mth1200", count=30)
+    test_source = make_ready_mth(tmp_path / "mth1000", count=10)
 
-    first = prepare_mth_course_dataset(
-        train_source, test_source, tmp_path / "first", materialize="copy"
-    )
-    second = prepare_mth_course_dataset(
-        train_source, test_source, tmp_path / "second", materialize="copy"
-    )
+    first = prepare_mth_course_dataset(train_source, test_source, tmp_path / "first")
+    second = prepare_mth_course_dataset(train_source, test_source, tmp_path / "second")
 
     assert first["splits"] == {"train": 27, "val": 3, "test": 10}
     assert first["entries"] == second["entries"]
@@ -235,6 +250,44 @@ def test_course_mth_uses_train_source_for_90_10_and_all_test_source(tmp_path: Pa
         "mth1000"
     }
     assert all_label_rows_start_with_zero(tmp_path / "first/labels")
+    first_label = next((tmp_path / "first" / "labels").rglob("*.txt"))
+    assert first_label.is_symlink()
+
+
+@pytest.mark.parametrize(
+    "row, message",
+    [
+        ("7 0.5 0.5 0.2 0.2\n", "class must be 0"),
+        ("0 1.1 0.5 0.2 0.2\n", "coordinates"),
+    ],
+)
+def test_course_mth_rejects_invalid_ready_yolo_labels(
+    tmp_path: Path, row: str, message: str
+) -> None:
+    train_source = make_ready_mth(tmp_path / "mth1200", count=10)
+    test_source = make_ready_mth(tmp_path / "mth1000", count=10)
+    next((train_source / "labels").rglob("*.txt")).write_text(row, encoding="utf-8")
+
+    with pytest.raises(ValueError, match=message):
+        prepare_mth_course_dataset(train_source, test_source, tmp_path / "output")
+
+
+def test_course_mth_shared_destination_requires_explicit_staff_flag(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    shared_root = tmp_path / "shared"
+    canonical = shared_root / "mth-full-project-ws2026"
+    monkeypatch.setattr(detection_module, "READ_ONLY_SHARED_ROOT", shared_root)
+    train_source = make_ready_mth(tmp_path / "mth1200", count=10)
+    test_source = make_ready_mth(tmp_path / "mth1000", count=10)
+
+    with pytest.raises(ValueError, match="allow-shared-output"):
+        prepare_mth_course_dataset(train_source, test_source, canonical)
+
+    manifest = prepare_mth_course_dataset(
+        train_source, test_source, canonical, allow_shared_output=True
+    )
+    assert manifest["splits"] == {"train": 9, "val": 1, "test": 10}
 
 
 def test_split_pairs_requires_enough_pages(tmp_path: Path) -> None:
@@ -252,25 +305,6 @@ def test_discovery_rejects_image_without_character_label(tmp_path: Path) -> None
 
     with pytest.raises(ValueError, match="without matching label_char labels"):
         discover_detection_pairs(source)
-
-
-def test_nomnaocr_view_preserves_nested_document_paths(tmp_path: Path) -> None:
-    source = make_yolo_source(
-        tmp_path / "nomnaocr", ["Book A/page-1", "Book B/volume/page-2"]
-    )
-    output = tmp_path / "nom-view"
-
-    manifest = prepare_yolo_view(
-        source,
-        output,
-        label_dir="detection_labels",
-        materialize="copy",
-    )
-
-    assert manifest["splits"] == {"test": 2}
-    assert (output / "images/test/Book A/page-1.jpg").is_file()
-    assert (output / "labels/test/Book B/volume/page-2.txt").is_file()
-    assert all_label_rows_start_with_zero(output / "labels")
 
 
 def _image_bytes() -> bytes:
@@ -307,43 +341,6 @@ def test_nomnaocr_archive_rejects_missing_labels(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="no matching label"):
         prepare_nomnaocr_archive(archive, tmp_path / "prepared")
-
-
-def test_nakagawa_view_uses_supplied_disjoint_splits(tmp_path: Path) -> None:
-    source = make_yolo_source(
-        tmp_path / "nakagawa", ["page-train", "page-val", "page-test"], label_dir="labels"
-    )
-    for split in ("train", "val", "test"):
-        (source / f"{split}.txt").write_text(
-            f"images/page-{split}.jpg\n", encoding="utf-8"
-        )
-
-    manifest = prepare_yolo_view(
-        source,
-        tmp_path / "nakagawa-view",
-        label_dir="labels",
-        split_files={split: source / f"{split}.txt" for split in ("train", "val", "test")},
-        materialize="copy",
-    )
-
-    assert manifest["splits"] == {"train": 1, "val": 1, "test": 1}
-
-
-def test_view_rejects_cross_split_leakage(tmp_path: Path) -> None:
-    source = make_yolo_source(tmp_path / "source", ["page"], label_dir="labels")
-    train = source / "train.txt"
-    val = source / "val.txt"
-    train.write_text("images/page.jpg\n", encoding="utf-8")
-    val.write_text("images/page.jpg\n", encoding="utf-8")
-
-    with pytest.raises(ValueError, match="occurs in both"):
-        prepare_yolo_view(
-            source,
-            tmp_path / "view",
-            label_dir="labels",
-            split_files={"train": train, "val": val},
-            materialize="copy",
-        )
 
 
 def test_preparation_refuses_shared_and_nonempty_destinations(tmp_path: Path) -> None:
@@ -551,12 +548,19 @@ def test_week3_handout_is_explicitly_single_class() -> None:
     assert "yolo11n.pt is ready" in handout
 
 
-def test_week4_handout_uses_week3_checkpoint_and_shared_source_tools() -> None:
+def test_week4_handout_uses_week3_checkpoint_and_student_built_nakagawa_view() -> None:
     handout = (
         Path(__file__).parents[1] / "labs/week-04-detection-2/README.md"
     ).read_text(encoding="utf-8")
     assert "week03-mth1200/weights/best.pt" in handout
-    assert "prepare-nakagawa" in handout
+    assert "Build your Nakagawa dataset workspace" in handout
+    assert "train.txt" in handout
+    assert "val.txt" in handout
+    assert "test.txt" in handout
+    assert "yolo_data/images" in handout
+    assert "yolo_data/labels" in handout
+    assert "class `0`" in handout
+    assert "prepare-nakagawa" not in handout
     assert "prepare-nomnaocr-archive" in handout
     assert "Reference only — not a reproduction target" in handout
     assert "0.9875" in handout and "0.9674" in handout

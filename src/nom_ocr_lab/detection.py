@@ -17,6 +17,7 @@ from PIL import Image
 
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".tif", ".tiff"}
 READ_ONLY_SHARED_ROOT = Path("/data/shared/project2026")
+CANONICAL_SHARED_MTH_DESTINATION = READ_ONLY_SHARED_ROOT / "mth-full-project-ws2026"
 MANIFEST_VERSION = 1
 PRACTICE_SPLITS = {"train": 18, "val": 2, "test": 4}
 
@@ -207,16 +208,33 @@ def prepare_mth_course_dataset(
     *,
     seed: int = 2026,
     materialize: Literal["symlink", "copy"] = "symlink",
+    allow_shared_output: bool = False,
 ) -> dict[str, object]:
-    """Prepare MTH1200 train/val and untouched MTH1000 test data."""
+    """Prepare the canonical MTH1200/MTH1000 YOLO dataset view.
+
+    Source ``labels/`` files must already be normalized, single-class YOLO labels.
+    They are validated and materialized unchanged beside their selected images.
+    """
 
     train_source = train_source.resolve()
     test_source = test_source.resolve()
     destination = destination.resolve()
-    _validate_new_destination(train_source, destination)
-    _validate_new_destination(test_source, destination)
-    train_val = split_train_val(discover_detection_pairs(train_source), seed=seed)
-    split_map = {**train_val, "test": discover_detection_pairs(test_source)}
+    _validate_new_destination(
+        train_source, destination, allow_shared_output=allow_shared_output
+    )
+    _validate_new_destination(
+        test_source, destination, allow_shared_output=allow_shared_output
+    )
+    train_val = split_train_val(
+        discover_detection_pairs(train_source, label_dir="labels"), seed=seed
+    )
+    split_map = {
+        **train_val,
+        "test": discover_detection_pairs(test_source, label_dir="labels"),
+    }
+    for pairs in split_map.values():
+        for pair in pairs:
+            _validate_single_class_yolo_label(pair.label_path)
 
     destination.mkdir(parents=True)
     entries = []
@@ -227,19 +245,14 @@ def prepare_mth_course_dataset(
             image_out = destination / "images" / split / pair.relative_image
             label_out = destination / "labels" / split / pair.relative_image.with_suffix(".txt")
             _materialize_file(pair.image_path, image_out, materialize)
-            label_out.parent.mkdir(parents=True, exist_ok=True)
-            with Image.open(pair.image_path) as image:
-                label_text = convert_xyxy_label(
-                    pair.label_path, image_width=image.width, image_height=image.height
-                )
-            label_out.write_text(label_text, encoding="utf-8")
+            _materialize_file(pair.label_path, label_out, materialize)
             entries.append(
                 {
                     "split": split,
                     "collection": collection,
                     "image": pair.relative_image.as_posix(),
                     "source_label": pair.label_path.relative_to(source).as_posix(),
-                    "boxes": len(label_text.splitlines()),
+                    "boxes": sum(1 for _ in _label_rows(pair.label_path)),
                 }
             )
 
@@ -447,113 +460,18 @@ def prepare_mth1000(
     return manifest
 
 
-def prepare_yolo_view(
-    source: Path,
-    destination: Path,
-    *,
-    label_dir: str,
-    split_files: dict[str, Path] | None = None,
-    materialize: Literal["symlink", "copy"] = "symlink",
-) -> dict[str, object]:
-    """Create a standard images/labels view from existing YOLO character labels."""
-
-    source = source.resolve()
-    destination = destination.resolve()
-    _validate_new_destination(source, destination)
-    pairs = discover_detection_pairs(source, label_dir=label_dir)
-    pair_by_relative = {pair.relative_image.as_posix(): pair for pair in pairs}
-    pair_by_name: dict[str, list[DetectionPair]] = {}
-    for pair in pairs:
-        pair_by_name.setdefault(pair.relative_image.name, []).append(pair)
-
-    if split_files:
-        split_map = {
-            split: _pairs_from_split_file(path, pair_by_relative, pair_by_name)
-            for split, path in split_files.items()
-        }
-    else:
-        split_map = {"test": pairs}
-    _assert_disjoint(split_map)
-
-    entries = []
-    destination.mkdir(parents=True)
-    for split, split_pairs_ in split_map.items():
-        for pair in split_pairs_:
-            image_out = destination / "images" / split / pair.relative_image
-            label_out = destination / "labels" / split / pair.relative_image.with_suffix(".txt")
-            _materialize_image(pair.image_path, image_out, materialize)
-            label_out.parent.mkdir(parents=True, exist_ok=True)
-            label_text = normalize_yolo_label(pair.label_path)
-            label_out.write_text(label_text, encoding="utf-8")
-            entries.append(
-                {
-                    "split": split,
-                    "image": pair.relative_image.as_posix(),
-                    "source_label": pair.label_path.relative_to(source).as_posix(),
-                    "boxes": len(label_text.splitlines()),
-                }
-            )
-
-    manifest = {
-        "version": MANIFEST_VERSION,
-        "kind": "single-class-yolo-view",
-        "source": str(source),
-        "source_label_directory": label_dir,
-        "size": len(entries),
-        "splits": {name: len(value) for name, value in split_map.items()},
-        "entries": entries,
-    }
-    _write_json(destination / "manifest.json", manifest)
-    _write_data_yaml(destination, {name: name for name in split_map})
-    return manifest
-
-
-def _pairs_from_split_file(
-    split_file: Path,
-    pair_by_relative: dict[str, DetectionPair],
-    pair_by_name: dict[str, list[DetectionPair]],
-) -> list[DetectionPair]:
-    selected = []
-    for line_number, raw in enumerate(split_file.read_text(encoding="utf-8").splitlines(), 1):
-        value = raw.strip()
-        if not value or value.startswith("#"):
-            continue
-        candidate = Path(value)
-        relative_candidates = [candidate.as_posix()]
-        if "images" in candidate.parts:
-            index = candidate.parts.index("images")
-            relative_candidates.append(Path(*candidate.parts[index + 1 :]).as_posix())
-        pair = next(
-            (pair_by_relative[key] for key in relative_candidates if key in pair_by_relative),
-            None,
-        )
-        if pair is None:
-            matches = pair_by_name.get(candidate.name, [])
-            if len(matches) == 1:
-                pair = matches[0]
-        if pair is None:
-            raise ValueError(f"{split_file}:{line_number}: cannot uniquely match {value!r}")
-        selected.append(pair)
-    if len({pair.relative_image for pair in selected}) != len(selected):
-        raise ValueError(f"{split_file}: contains duplicate images")
-    return selected
-
-
-def _assert_disjoint(split_map: dict[str, list[DetectionPair]]) -> None:
-    ownership: dict[Path, str] = {}
-    for split, pairs in split_map.items():
-        for pair in pairs:
-            previous = ownership.setdefault(pair.relative_image, split)
-            if previous != split:
-                raise ValueError(
-                    f"{pair.relative_image} occurs in both {previous!r} and {split!r}"
-                )
-
-
-def _validate_new_destination(source: Path, destination: Path) -> None:
+def _validate_new_destination(
+    source: Path, destination: Path, *, allow_shared_output: bool = False
+) -> None:
     shared = READ_ONLY_SHARED_ROOT.resolve()
     if destination == shared or shared in destination.parents:
-        raise ValueError(f"Destination must not be inside read-only {shared}")
+        canonical = (shared / CANONICAL_SHARED_MTH_DESTINATION.name).resolve()
+        if not allow_shared_output or destination != canonical:
+            raise ValueError(
+                "Destination must not be inside read-only "
+                f"{shared}; only staff may prepare {canonical} with "
+                "--allow-shared-output"
+            )
     if destination == source or source in destination.parents:
         raise ValueError("Destination must not be inside the source dataset")
     if destination.exists() and any(destination.iterdir()):

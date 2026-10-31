@@ -9,7 +9,6 @@ from pathlib import Path
 from .detection import (
     prepare_mth_course_dataset,
     prepare_nomnaocr_archive,
-    prepare_yolo_view,
     stage_mth_practice_sample,
     validate_mth_practice_dataset,
 )
@@ -47,13 +46,14 @@ def build_parser() -> argparse.ArgumentParser:
     full.add_argument("--output", type=Path)
     full.add_argument("--seed", type=int, default=2026)
     full.add_argument("--materialize", choices=("symlink", "copy"), default="symlink")
-
-    nakagawa = subparsers.add_parser(
-        "prepare-nakagawa", help="Build a split YOLO view of Nakagawa"
+    full.add_argument(
+        "--allow-shared-output",
+        action="store_true",
+        help=(
+            "Allow staff to prepare only /data/shared/project2026/"
+            "mth-full-project-ws2026"
+        ),
     )
-    nakagawa.add_argument("--source", type=Path, required=True)
-    nakagawa.add_argument("--output", type=Path)
-    nakagawa.add_argument("--materialize", choices=("symlink", "copy"), default="symlink")
 
     nom = subparsers.add_parser(
         "prepare-nomnaocr-archive", help="Prepare the Roboflow ZIP as an external test set"
@@ -82,22 +82,11 @@ def main(argv: list[str] | None = None) -> int:
             output,
             seed=args.seed,
             materialize=args.materialize,
+            allow_shared_output=args.allow_shared_output,
         )
     elif args.command == "prepare-nomnaocr-archive":
         output = args.output or _workspace_output("nomnaocr-character-detection")
         result = prepare_nomnaocr_archive(args.archive, output)
-    else:
-        output = args.output or _workspace_output("nakagawa-character-detection")
-        split_files = {
-            split: args.source / f"{split}.txt" for split in ("train", "val", "test")
-        }
-        result = prepare_yolo_view(
-            args.source,
-            output,
-            label_dir="labels",
-            split_files=split_files,
-            materialize=args.materialize,
-        )
     action = "Validated" if args.command == "validate-mth-practice" else "Prepared"
     print(f"{action} {result['size']} paired pages at {output.resolve()}")
     if "splits" in result:
