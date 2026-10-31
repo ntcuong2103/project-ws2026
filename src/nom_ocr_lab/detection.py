@@ -20,6 +20,7 @@ READ_ONLY_SHARED_ROOT = Path("/data/shared/project2026")
 CANONICAL_SHARED_MTH_DESTINATION = READ_ONLY_SHARED_ROOT / "mth-full-project-ws2026"
 MANIFEST_VERSION = 1
 PRACTICE_SPLITS = {"train": 18, "val": 2, "test": 4}
+YOLO_BOUNDARY_TOLERANCE = 1e-3
 
 
 @dataclass(frozen=True)
@@ -517,9 +518,15 @@ def _validate_single_class_yolo_label(path: Path) -> None:
                 f"{path}:{line_number}: normalized coordinates must be in [0, 1] "
                 "with positive width and height"
             )
-        if x - width / 2 < -1e-6 or x + width / 2 > 1 + 1e-6:
+        if (
+            x - width / 2 < -YOLO_BOUNDARY_TOLERANCE
+            or x + width / 2 > 1 + YOLO_BOUNDARY_TOLERANCE
+        ):
             raise ValueError(f"{path}:{line_number}: box exceeds image width")
-        if y - height / 2 < -1e-6 or y + height / 2 > 1 + 1e-6:
+        if (
+            y - height / 2 < -YOLO_BOUNDARY_TOLERANCE
+            or y + height / 2 > 1 + YOLO_BOUNDARY_TOLERANCE
+        ):
             raise ValueError(f"{path}:{line_number}: box exceeds image height")
 
 

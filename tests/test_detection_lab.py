@@ -272,6 +272,20 @@ def test_course_mth_rejects_invalid_ready_yolo_labels(
         prepare_mth_course_dataset(train_source, test_source, tmp_path / "output")
 
 
+def test_course_mth_accepts_small_boundary_rounding_in_ready_yolo_labels(
+    tmp_path: Path,
+) -> None:
+    train_source = make_ready_mth(tmp_path / "mth1200", count=10)
+    test_source = make_ready_mth(tmp_path / "mth1000", count=10)
+    next((train_source / "labels").rglob("*.txt")).write_text(
+        "0 0.991208 0.429244 0.017850 0.024026\n", encoding="utf-8"
+    )
+
+    manifest = prepare_mth_course_dataset(train_source, test_source, tmp_path / "output")
+
+    assert manifest["splits"] == {"train": 9, "val": 1, "test": 10}
+
+
 def test_course_mth_shared_destination_requires_explicit_staff_flag(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
