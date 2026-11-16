@@ -1,7 +1,7 @@
 /* ==========================================================================
    Nôm OCR · WS 2026 — site theme
    Docs pages: GitHub Docs feel (light canvas header, quiet sidebar, GitHub
-   tables/alerts). Landing page: dark manuscript hero, then light sections.
+   tables/alerts). Landing page: flat manuscript hero that follows the theme.
    Phase colours encode the pipeline stage everywhere (cards, banners).
    ========================================================================== */
 
@@ -224,30 +224,41 @@
   padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px));
 }
 
-/* Hero (always dark, flat) */
-.lp-hero { background: #0d1117; color: #e6edf3; padding-block: 56px 48px; }
+/* Hero (flat, follows the light/dark theme) */
+.lp-hero { background: var(--gh-canvas); color: var(--gh-fg); padding-block: 56px 48px; border-bottom: 1px solid var(--gh-border-muted); }
 .lp-hero__grid { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 40px; align-items: center; }
 .lp-hero__copy { min-width: 0; }
 .lp-hero__title {
   font-family: var(--font-display); font-weight: 800; font-size: clamp(44px, 5.6vw, 76px);
-  line-height: .98; letter-spacing: -.04em; margin: 0 0 18px; color: #fff; text-wrap: balance;
+  line-height: .98; letter-spacing: -.04em; margin: 0 0 18px; color: var(--gh-fg); text-wrap: balance;
 }
-.lp-hero__title span { color: #fbbf24; }
-.lp-hero__meta { margin: 0 0 22px; font-size: 15px; font-weight: 600; color: #e6edf3; }
-.lp-hero__lead { font-size: 17px; color: #9198a1; max-width: 460px; margin: 0 0 28px; }
+.lp-hero__title span { color: var(--ph-midterm); }
+.lp-hero__meta { margin: 0 0 22px; font-size: 15px; font-weight: 600; color: var(--gh-fg); }
+.lp-hero__lead { font-size: 17px; color: var(--gh-muted); max-width: 460px; margin: 0 0 28px; }
 .lp-hero__cta { display: flex; flex-wrap: wrap; gap: 10px; }
 .lp-btn {
   display: inline-flex; align-items: center; padding: 12px 20px; border-radius: 8px;
   font-weight: 700; font-size: 15px; text-decoration: none !important; transition: background .15s, border-color .15s;
 }
-.lp-btn:focus-visible { outline: 2px solid #fbbf24; outline-offset: 2px; }
+.lp-btn:focus-visible { outline: 2px solid var(--ph-midterm); outline-offset: 2px; }
 .lp-btn--primary { background: #fbbf24; color: #0d1117 !important; }
 .lp-btn--primary:hover { background: #fcd34d; }
-.lp-btn--ghost { color: #e6edf3 !important; border: 1px solid #3d444d; }
-.lp-btn--ghost:hover { border-color: #9198a1; }
+.lp-btn--ghost { color: var(--gh-fg) !important; border: 1px solid var(--gh-border); }
+.lp-btn--ghost:hover { border-color: var(--gh-muted); }
 .lp-hero__art { margin: 0; min-width: 0; }
 .lp-hero__art svg { display: block; width: 100%; max-height: 640px; height: auto; }
-.lp-hero__art figcaption { font-size: 13px; color: #9198a1; text-align: right; margin-top: 4px; }
+.lp-hero__art figcaption { font-size: 13px; color: var(--gh-muted); text-align: right; margin-top: 4px; }
+
+/* Hero illustration, light theme: the callout card turns light; page and boxes are unchanged */
+[data-md-color-scheme="default"] .manuscript .card { fill: #ffffff; stroke: rgba(217, 119, 6, .55); }
+[data-md-color-scheme="default"] .manuscript .callout text { fill: #1f2328; }
+[data-md-color-scheme="default"] .manuscript .muted { fill: #59636e !important; }
+[data-md-color-scheme="default"] .manuscript .tok { fill: rgba(52, 81, 209, .07); stroke: rgba(52, 81, 209, .45); }
+[data-md-color-scheme="default"] .manuscript .edge { stroke: rgba(31, 35, 40, .35); }
+[data-md-color-scheme="default"] .manuscript .op rect, [data-md-color-scheme="default"] .manuscript .op line { stroke: #d97706; }
+[data-md-color-scheme="default"] .manuscript .lead { stroke: #d97706; }
+[data-md-color-scheme="default"] .manuscript .callout circle[stroke="#fbbf24"] { stroke: #d97706; }
+[data-md-color-scheme="default"] .manuscript .callout circle[stroke^="rgba(142"] { fill: rgba(52, 81, 209, .07); stroke: rgba(52, 81, 209, .5); }
 
 /* Status strip */
 .lp-status { background: var(--gh-subtle); border-bottom: 1px solid var(--gh-border-muted); }
