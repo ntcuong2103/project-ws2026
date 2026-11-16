@@ -57,7 +57,7 @@ The table gives the overview; the per-week details (reading, provided materials,
 | 4 | Detection II | Nôm adaptation and external evaluation | Inspect Nakagawa class collapse; fine-tune the Week 3 checkpoint; compare both checkpoints on external NomNaOCR data | Fine-tuned checkpoint, student-authored jobs, Nakagawa test metrics, NomNaOCR comparison, and prediction handoff | [Week 4 lab](labs/week-04-detection-2/) |
 | 5 | Recognition I | IDS operators, direct/expanded decompositions, and recognizer token vocabulary | Validate Chinese examples; analyze one Nôm page; verify with zi.tools; export unlabeled detector crops | IDS converter, page coverage report, manual checks, and inference crops | [labs/week-05-recognition-1](labs/week-05-recognition-1/) |
 | 6 | Recognition II | Recognizer logits, token vocabulary, and forward passes | Inspect synthetic, Chinese, Nôm, and real-box logits using the given checkpoint | Executed logits notebook + one-page top-token report | [labs/week-06-recognition-2](labs/week-06-recognition-2/) |
-| 7 | Recognition III | Autoregressive greedy decoding, deduplication, IDS→Unicode composition | Implement the decoder from next-token logits; run the full detector→recognizer pipeline; prepare midterm slides | Decoder tests + full per-box output + combined demo | [labs/week-07-recognition-3](labs/week-07-recognition-3/) |
+| 7 | Recognition III | Bidirectional greedy decoding (BTTR), deduplication, IDS→Unicode composition | Implement left-to-right, then bidirectional decoding with re-scoring; run the full detector→recognizer pipeline; prepare midterm slides | Decoder tests + full per-box output + combined demo | [labs/week-07-recognition-3](labs/week-07-recognition-3/) |
 | 8 | Midterm | Midterm presentations: detection + recognition results, error analysis, alignment-stage plan | Team presentations (\~15 min + Q&A) | **Midterm presentation (graded)** | [labs/week-08-midterm](labs/week-08-midterm/) |
 | 9 | Alignment I | Box-to-line assignment; formalizing correspondence recovery | Implement center-in-rectangle box-to-line test and grouping/sorting; validate on 2 synthetic pages | Box-to-line assignment module, validated then run on real data | [labs/week-09-alignment-1](labs/week-09-alignment-1/) |
 | 10 | Alignment II | Two-level IDS-level DP alignment — the paper's Algorithm 1 | Implement outer DP + backtracking with inner IDS edit distance; verify against hand-computed toy example | DP alignment implementation verified on a toy example | [labs/week-10-alignment-2](labs/week-10-alignment-2/) |
@@ -186,7 +186,8 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 **Topic:** Encoder–decoder/attention-based recognizers (BTTR-style); logits and teacher-forced forward passes.
 **Reading:** Zhao et al., "BTTR," ICDAR (2021).
 **Starter kit (given):** a YAML-configured LitBTTR adapter that returns crop/prefix logits; training the recognizer itself is out of scope.
-**You implement:** inspect logits, token IDs, softmax/top-*k* results, and prefix dependence. The decoder is Week 7 work.
+**Setup:** `uv sync --group recognition` and a clone of `nom-ids@project-2026` (see the lab).
+**You implement:** inspect logits, token IDs, softmax/top-*k* results, and prefix dependence, for prefixes that start with SOS (left-to-right) and with EOS (right-to-left). The decoder is Week 7 work.
 **Small experiment:** calculate argmax and probabilities for hand-crafted logits before inspecting the checkpoint's Chinese and Nôm crop logits.
 **Lab:** [labs/week-06-recognition-2](labs/week-06-recognition-2/)
 
@@ -201,20 +202,24 @@ Each week has its own folder under [`labs/`](labs/) holding that week's lab tuto
 
 ### Week 7 — Recognition III
 
-**Topic:** Autoregressive greedy decoding, deduplication, IDS→Unicode composition, and midterm preparation.
-**Starter kit (given):** next-token logits primitive and fixed decoder fixtures.
-**You implement:** greedy decoding from SOS through EOS/max length, then deduplication and one-to-many IDS→Unicode candidate lookup.
-**Small experiment:** exact-match normal EOS, immediate EOS, repeated-token, and maximum-length decoder fixtures.
+**Topic:** Bidirectional greedy decoding (BTTR), deduplication, IDS→Unicode composition, and midterm preparation.
+**Reference:** Dr. Cuong's [`nom-ids@project-2026/evaluate.ipynb`](https://github.com/ntcuong2103/nom-ids/blob/project-2026/evaluate.ipynb), the ground truth for decoder behaviour.
+**Starter kit (given):** next-token logits primitive, left-to-right and bidirectional decoder fixtures.
+**You implement:** greedy decoding from SOS through EOS/max length; the same in the right-to-left direction; cross-direction re-scoring and selection; then deduplication and one-to-many IDS→Unicode candidate lookup.
+**Small experiment:** exact-match the four left-to-right fixtures, then the four bidirectional fixtures (including their own/cross/score values).
 **Lab:** [labs/week-07-recognition-3](labs/week-07-recognition-3/)
 
 **Tasks:**
 
-- [ ] Implement and exact-match test the greedy decoder
+- [ ] Implement and exact-match test the left-to-right greedy decoder
+- [ ] Extend it to bidirectional decoding with re-scoring; exact-match the bidirectional fixtures
+- [ ] Check your decoder against the reference notebook's crops
 - [ ] Implement sequence deduplication and IDS→Unicode candidate lookup
 - [ ] Run the full page → detector boxes → recognizer → decoder pipeline on the complete handoff
 - [ ] Assemble a combined detection+recognition demo; draft midterm slides
+- [ ] Optional: ablate left-to-right only vs. right-to-left only vs. bidirectional
 
-**Deliverable:** Decoder module (validated on fixtures), full per-box recognition output, combined demo, and midterm slide draft.
+**Deliverable:** Bidirectional decoder (validated on fixtures and the reference notebook), full per-box recognition output, combined demo, and midterm slide draft.
 
 ### Week 8 — Midterm
 

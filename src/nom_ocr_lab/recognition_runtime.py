@@ -2,6 +2,11 @@
 
 The public runtime deliberately exposes logits, not a model-provided search
 method.  Students use :meth:`next_token_logits` to build greedy decoding.
+
+LitBTTR is trained in both directions with one decoder: the first token of a
+prefix selects the direction. A prefix that starts with ``sos_idx`` gives
+left-to-right logits; a prefix that starts with ``eos_idx`` gives right-to-left
+logits. Week 7 uses both for bidirectional decoding.
 """
 
 from __future__ import annotations
@@ -166,7 +171,7 @@ class _LitBTTRBackend:
         self.model = model
 
     def logits(self, crops: Any, prefixes: Any) -> Any:
-        """Adapt the pinned LitBTTR teacher-forced forward method to l2r logits."""
+        """Adapt the pinned LitBTTR teacher-forced forward method to per-prefix logits."""
         import torch
 
         if crops.ndim != 4 or prefixes.ndim != 2 or crops.shape[0] != prefixes.shape[0]:
@@ -177,8 +182,10 @@ class _LitBTTRBackend:
         image_mask = torch.zeros(
             (crops.shape[0], crops.shape[2], crops.shape[3]), dtype=torch.long, device=device
         )
-        # LitBTTR is bidirectionally trained and expects 2B target rows. The
-        # first B output rows are the ordinary left-to-right teacher-forced logits.
+        # LitBTTR.forward expects 2B target rows (it duplicates the encoder
+        # features). Each row is decoded independently, so passing the same
+        # prefixes twice and keeping the first B rows gives the logits for the
+        # supplied prefixes: l2r when they start with SOS, r2l when they start with EOS.
         bidirectional_prefixes = torch.cat((prefixes, prefixes), dim=0)
         with torch.no_grad():
             return self.model(crops, image_mask, bidirectional_prefixes)[: crops.shape[0]]

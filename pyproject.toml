@@ -18,6 +18,17 @@ dev = [
     "nbclient>=0.10",
     "pytest>=8.0",
 ]
+# Weeks 6-7: what the supplied LitBTTR checkpoint needs to load. Pins follow the
+# environment Dr. Cuong used for nom-ids@project-2026/evaluate.ipynb.
+# Install with: uv sync --group recognition
+recognition = [
+    "einops>=0.8.1,<0.9",
+    "pandas>=2.0",
+    "pytorch-lightning>=2.5.2,<2.6",
+    "torch>=2.7.1,<2.8",
+    "torchmetrics>=1.7.4,<2",
+    "torchvision>=0.22.1,<0.23",
+]
 
 [tool.uv]
 package = true

@@ -18,6 +18,31 @@ and IDS vocabulary you prepared last week.
 
 ## Starter kit and configuration
 
+### Install the recognizer dependencies and model code
+
+The recognizer needs PyTorch Lightning and a few other packages that the detection weeks did
+not. Install them once in your lab checkout:
+
+```bash
+cd /home/projectgX/project-ws2026
+uv sync --group recognition
+```
+
+The model code comes from Dr. Cuong's `nom-ids` repository. Clone it into your team's data
+workspace at the commit that matches the provided checkpoint:
+
+```bash
+git clone -b project-2026 https://github.com/ntcuong2103/nom-ids.git \
+  "$LAB_WORKSPACE/models/nom-ids"
+git -C "$LAB_WORKSPACE/models/nom-ids" checkout 64be114
+```
+
+The configuration's `model.package_root` already points at
+`${LAB_WORKSPACE}/models/nom-ids/nom-ids-ocr/src`. The IDS files bundled in this repository's
+`nom-ids/` folder are byte-identical to the ones in that commit.
+
+### Configure the runtime
+
 Copy [`configs/recognition.example.yaml`](../../configs/recognition.example.yaml) to a private
 location and set `LAB_WORKSPACE` plus `COURSE_REPOSITORY` (the absolute path to this course
 checkout). The configuration keeps the checkpoint-sensitive paths, special-token IDs,
@@ -83,6 +108,10 @@ a decoder must feed earlier choices back into the model.
    report with `page_id`, `box_id`, and the candidate tokens you inspected.
 5. In your own words, explain why independently taking argmax values from a teacher-forced
    logit tensor is not yet a complete inference decoder.
+6. Preview for Week 7: run the forward adapter once with a prefix that starts with `eos_idx`
+   instead of `sos_idx`. LitBTTR was trained to read IDS sequences in both directions with one
+   decoder, and the first token selects the direction. Compare the top tokens with the `sos_idx`
+   prefix: which end of the IDS does each one predict first?
 
 ## Tasks
 
