@@ -99,11 +99,38 @@ def _source_note(source: str, repo: str, ref: str) -> str:
     )
 
 
-def _schedule_table(readme: str) -> str:
+def _schedule_rows(readme: str) -> list[list[str]]:
     match = re.search(r"## Tentative 15-Week Schedule\n(.*?)\n## ", readme, re.DOTALL)
     if not match:
         raise RuntimeError("Could not find the schedule table in README.md")
-    return "\n".join(line for line in match.group(1).splitlines() if line.startswith("|"))
+    rows = []
+    for line in match.group(1).splitlines():
+        cells = [c.strip() for c in line.strip().strip("|").split(" | ")]
+        if line.startswith("|") and cells[0].isdigit():
+            rows.append(cells)
+    if len(rows) != 15:
+        raise RuntimeError(f"Expected 15 schedule rows in README.md, found {len(rows)}")
+    return rows
+
+
+def _schedule_plan(rows: list[list[str]], extra: dict) -> str:
+    """Render the README schedule as stacked blocks; a 6-column table needs side-scrolling."""
+    blocks = []
+    for number, phase, topic, work, deliverable, *_ in rows:
+        n = int(number)
+        title, _blurb = WEEKS[n]
+        status, label = _week_status(n, extra)
+        blocks.append(
+            f'<div class="wk-plan wk-plan--{_phase(title)}" markdown>\n'
+            f'<p class="wk-plan__head"><a href="week-{n:02d}/">'
+            f'<span class="wk-plan__num">Week {n:02d}</span> {phase}</a> '
+            f'<span class="wk-status wk-status--{status}">{label}</span></p>\n\n'
+            f"{topic}\n\n"
+            f"**In the lab:** {work}\n\n"
+            f"**Deliverable:** {deliverable}\n\n"
+            "</div>\n"
+        )
+    return "\n".join(blocks)
 
 
 WEEKS = {
@@ -194,7 +221,9 @@ def on_pre_build(config) -> None:  # noqa: ANN001 - MkDocs hook signature
         _write_if_changed(DOCS / page, text + _source_note(source, repo, ref))
 
     readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
-    table = _rewrite(_schedule_table(readme), "README.md", "weeks/index.md", repo, ref, pages)
+    plan = _rewrite(
+        _schedule_plan(_schedule_rows(readme), config["extra"]), "README.md", "weeks/index.md", repo, ref, pages
+    )
     cards = "".join(
         f'<a class="wk-card wk-card--{w["phase"]} wk-card--{w["status"]}" href="week-{w["number"]:02d}/">'
         f'<span class="wk-card__top"><span class="wk-card__num">W{w["number"]:02d}</span>'
@@ -213,6 +242,6 @@ def on_pre_build(config) -> None:  # noqa: ANN001 - MkDocs hook signature
         "practice during the break.\n\n"
         f'<div class="wk-grid">{cards}</div>\n\n'
         "## Detailed plan\n\n"
-        f"{table}\n"
+        f"{plan}\n"
     )
     _write_if_changed(DOCS / "weeks/index.md", index + _source_note("README.md", repo, ref))

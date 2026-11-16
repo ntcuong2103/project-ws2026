@@ -329,3 +329,31 @@
   .wk-status--next::before { animation: none; }
   .wk-card, .lp-stage, .lp-btn { transition: none; }
 }
+
+/* Detailed weekly plan (replaces the wide README table) */
+.md-typeset .wk-plan {
+  --ph: var(--ph-orientation);
+  padding: .1rem 0 .1rem .9rem; margin: 0 0 1.3rem; border-left: 3px solid var(--ph);
+}
+.md-typeset .wk-plan p { margin: .3rem 0; }
+.md-typeset .wk-plan__head { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .6rem; margin-top: 0; }
+.md-typeset .wk-plan__head a { font-family: var(--font-display); font-size: .9rem; font-weight: 700; color: var(--gh-fg); }
+.md-typeset .wk-plan__head a:hover { color: var(--ph); }
+.wk-plan__num { color: var(--ph); margin-right: .2rem; }
+.wk-plan--orientation { --ph: var(--ph-orientation); }
+.wk-plan--foundations { --ph: var(--ph-foundations); }
+.wk-plan--detection { --ph: var(--ph-detection); }
+.wk-plan--recognition { --ph: var(--ph-recognition); }
+.wk-plan--midterm { --ph: var(--ph-midterm); }
+.wk-plan--alignment { --ph: var(--ph-alignment); }
+.wk-plan--pseudo-labeling { --ph: var(--ph-pseudo-labeling); }
+.wk-plan--integration { --ph: var(--ph-integration); }
+.wk-plan--final { --ph: var(--ph-final); }
+
+/* Phones: let tables wrap inside the column instead of scrolling sideways */
+@media (max-width: 600px) {
+  .md-typeset__table, .md-typeset table:not([class]) { display: table; width: 100%; table-layout: auto; }
+  .md-typeset table:not([class]) { font-size: .68rem; }
+  .md-typeset table:not([class]) th, .md-typeset table:not([class]) td { min-width: 0; padding: .45em .55em; overflow-wrap: anywhere; }
+  .md-typeset table:not([class]) code { word-break: break-all; }
+}

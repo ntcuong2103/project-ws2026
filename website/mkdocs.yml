@@ -1,4 +1,4 @@
-site_name: Nôm OCR · WS 2026
+site_name: Confidence-Weighted Nôm OCR
 site_description: Course site for the Confidence-Weighted Nôm OCR project course (VGU, WS 2026)
 site_url: !ENV [DOCS_SITE_URL, ""]
 repo_url: https://github.com/ntcuong2103/project-ws2026
