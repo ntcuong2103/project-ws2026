@@ -9,22 +9,25 @@ copyright: Confidence-Weighted Nôm OCR · Vietnamese-German University · WS 20
 
 theme:
   name: material
+  custom_dir: overrides
   language: en
+  logo: assets/mark.svg
+  favicon: assets/mark.svg
   font:
-    text: IBM Plex Sans
-    code: IBM Plex Mono
+    text: Inter
+    code: JetBrains Mono
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
-      accent: indigo
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
-      accent: indigo
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode
@@ -53,6 +56,22 @@ extra:
   source_repo: https://github.com/ntcuong2103/project-ws2026
   source_ref: !ENV [DOCS_SOURCE_REF, main]
   generator: false
+  # Course position: drives the schedule cards, week banners, and countdown.
+  current_week: 7
+  current_label: Up next · Dec
+  midterm_label: Tue 15 Dec
+  midterm_date: "2026-12-15T08:00:00+07:00"
+  staff:
+    - name: Dr. Nguyễn Tuấn Cường
+      role: Instructor
+      initials: C
+      url: https://ntcuong2103.github.io/
+    - name: Minh
+      role: Teaching assistant
+      initials: M
+    - name: Dương
+      role: Teaching assistant
+      initials: D
 
 markdown_extensions:
   - admonition

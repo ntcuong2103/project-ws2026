@@ -106,6 +106,67 @@ def _schedule_table(readme: str) -> str:
     return "\n".join(line for line in match.group(1).splitlines() if line.startswith("|"))
 
 
+WEEKS = {
+    1: ("Orientation", "Kickoff, the source paper, server access, and team formation"),
+    2: ("Foundations", "Problem framing, NomNaOCR audit, and edit distance"),
+    3: ("Detection I", "Single-class YOLO11 character detection on MTH pages"),
+    4: ("Detection II", "Fine-tune on Nakagawa, evaluate on NomNaOCR"),
+    5: ("Recognition I", "IDS decomposition, vocabulary coverage, and crops"),
+    6: ("Recognition II", "Inside the recognizer: logits and forward passes"),
+    7: ("Recognition III", "Bidirectional decoding and the full pipeline demo"),
+    8: ("Midterm", "15-minute talks on detection and recognition"),
+    9: ("Alignment I", "Assign detected boxes to transcription lines"),
+    10: ("Alignment II", "Two-level IDS dynamic-programming alignment"),
+    11: ("Alignment III", "Confidence scores against the binary-flag baseline"),
+    12: ("Pseudo-labeling I", "The confidence-weighted fine-tuning loop"),
+    13: ("Pseudo-labeling II", "Modified CER and precision by confidence band"),
+    14: ("Integration", "Robustness to detector noise and the final dry run"),
+    15: ("Final", "Final presentations, written report, and code"),
+}
+
+
+def _phase(title: str) -> str:
+    return title.split()[0].lower()
+
+
+def _week_status(number: int, extra: dict) -> tuple[str, str]:
+    """(css modifier, label) for a week given the course's current position."""
+    current = int(extra.get("current_week", 1))
+    if number == 8:
+        return "midterm", extra.get("midterm_label", "Midterm")
+    if number < current:
+        return "done", "Done"
+    if number == current:
+        return "next", extra.get("current_label", "Up next")
+    return "planned", "Planned" if number not in RELEASED_WEEKS else "Released"
+
+
+def on_config(config):  # noqa: ANN001, ANN201 - MkDocs hook signature
+    extra = config["extra"]
+    weeks = []
+    for number, (title, blurb) in WEEKS.items():
+        status, label = _week_status(number, extra)
+        weeks.append({
+            "number": number, "title": title, "blurb": blurb, "phase": _phase(title),
+            "status": status, "label": label, "url": f"weeks/week-{number:02d}/",
+        })
+    extra["weeks"] = weeks
+    return config
+
+
+def _week_banner(number: int, extra: dict) -> str:
+    title, blurb = WEEKS[number]
+    status, label = _week_status(number, extra)
+    return (
+        f'<div class="wk-banner wk-banner--{_phase(title)}">'
+        f'<span class="wk-banner__num">Week {number:02d}</span>'
+        f'<span class="wk-banner__phase">{title}</span>'
+        f'<span class="wk-status wk-status--{status}">{label}</span>'
+        f'<span class="wk-banner__blurb">{blurb}</span>'
+        "</div>\n\n"
+    )
+
+
 def on_pre_build(config) -> None:  # noqa: ANN001 - MkDocs hook signature
     repo = config["extra"]["source_repo"]
     ref = config["extra"]["source_ref"] or "main"
@@ -124,6 +185,7 @@ def on_pre_build(config) -> None:  # noqa: ANN001 - MkDocs hook signature
                 "The full lab handout will be published before the session.\n"
                 + text[heading_end:]
             )
+        text = _week_banner(number, config["extra"]) + text
         _write_if_changed(DOCS / page, text + _source_note(source, repo, ref))
 
     for source, page in GUIDES.items():
@@ -133,6 +195,14 @@ def on_pre_build(config) -> None:  # noqa: ANN001 - MkDocs hook signature
 
     readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
     table = _rewrite(_schedule_table(readme), "README.md", "weeks/index.md", repo, ref, pages)
+    cards = "".join(
+        f'<a class="wk-card wk-card--{w["phase"]} wk-card--{w["status"]}" href="week-{w["number"]:02d}/">'
+        f'<span class="wk-card__top"><span class="wk-card__num">W{w["number"]:02d}</span>'
+        f'<span class="wk-status wk-status--{w["status"]}">{w["label"]}</span></span>'
+        f'<span class="wk-card__title">{w["title"]}</span>'
+        f'<span class="wk-card__blurb">{w["blurb"]}</span></a>'
+        for w in config["extra"]["weeks"]
+    )
     index = (
         "# Weekly schedule\n\n"
         "Each session is 4 academic hours: a 5-minute review per group of the previous week's "
@@ -141,6 +211,8 @@ def on_pre_build(config) -> None:  # noqa: ANN001 - MkDocs hook signature
         "    Weeks 1–6 are done. Classes resume in December with Week 7, followed by the "
         "Week 8 midterm on **Tuesday 15 December 2026**. Weeks 1–7 labs are available as "
         "practice during the break.\n\n"
+        f'<div class="wk-grid">{cards}</div>\n\n'
+        "## Detailed plan\n\n"
         f"{table}\n"
     )
     _write_if_changed(DOCS / "weeks/index.md", index + _source_note("README.md", repo, ref))
