@@ -15,7 +15,7 @@
         </p>
         <div class="lp-hero__cta">
           <a class="lp-btn lp-btn--primary" href="{{ 'getting-started/' | url }}">Get started</a>
-          <a class="lp-btn lp-btn--ghost" href="{{ 'weeks/week-07/' | url }}">Week 7 lab</a>
+          <a class="lp-btn lp-btn--ghost" href="{{ 'guides/midterm/' | url }}">Midterm rules</a>
         </div>
       </div>
       <figure class="lp-hero__art">
@@ -27,8 +27,8 @@
 
   <section class="lp-status" aria-label="Course status">
     <div class="lp-wrap lp-status__row">
-      <span class="lp-status__pill">On break</span>
-      <p class="lp-status__text">Week 7 is in December. Midterm presentations: <b>Tuesday 15 December</b>.</p>
+      <span class="lp-status__pill">{{ config.extra.status_pill }}</span>
+      <p class="lp-status__text">{{ config.extra.status_note }} <a href="{{ 'guides/midterm/' | url }}">Midterm rules</a></p>
       <p class="lp-status__count" id="lp-countdown" data-target="{{ config.extra.midterm_date }}" aria-live="polite"></p>
     </div>
   </section>

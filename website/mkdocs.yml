@@ -57,8 +57,11 @@ extra:
   source_ref: !ENV [DOCS_SOURCE_REF, main]
   generator: false
   # Course position: drives the schedule cards, week banners, and countdown.
-  current_week: 7
-  current_label: Up next · Dec
+  current_week: 8
+  current_label: Up next · Tue 15 Dec
+  # Shown in the landing-page status strip and on the Weeks page.
+  status_pill: Up next
+  status_note: "Weeks 1–7 are done. Up next: the Week 8 midterm presentations on <b>Tuesday 15 December 2026</b>."
   midterm_label: Tue 15 Dec
   midterm_date: "2026-12-15T08:00:00+07:00"
   staff:

@@ -265,6 +265,7 @@
 .lp-status__row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding-block: 14px; }
 .lp-status__pill { font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 6px; color: #0d1117; background: #fbbf24; }
 .lp-status__text { margin: 0; font-size: 15px; flex: 1 1 360px; min-width: 0; }
+.lp-status__text a { color: var(--gh-accent); font-weight: 600; margin-left: .3em; }
 .lp-status__count { margin: 0; font-size: 15px; font-weight: 700; }
 
 /* Sections */

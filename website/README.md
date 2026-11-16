@@ -34,7 +34,7 @@ merged labs are on `main`, set it to the branch that holds them.
 | To change | Edit |
 | --- | --- |
 | Announcements | `docs/index.md` (the landing page renders its body) |
-| Current week, status labels, midterm countdown | `extra:` in `mkdocs.yml` (`current_week`, `current_label`, `midterm_date`) |
+| Current week, status strip, midterm countdown | `extra:` in `mkdocs.yml` (`current_week`, `current_label`, `status_pill`, `status_note`, `midterm_date`) |
 | Week card titles and one-line blurbs | `WEEKS` in `hooks.py` |
 | Landing page layout (hero, status strip, announcements, pipeline, schedule) | `overrides/home.html` |
 | Colours, fonts, GitHub-style docs look | `docs/stylesheets/extra.css` (phase colours are the `--ph-*` tokens) |
@@ -45,7 +45,6 @@ The hero illustration uses a real NomNaOCR page (the preface of *Đại Việt s
 
 ## Weekly upkeep
 
-- Move `current_week` forward in `mkdocs.yml` and add an announcement in `docs/index.md`.
+- Move `current_week` forward and update `current_label`, `status_pill` and `status_note` in `mkdocs.yml`; add an announcement in `docs/index.md`.
 - When a week's lab is released, add its number to `RELEASED_WEEKS` in `hooks.py`.
-- Update the status band text in `overrides/home.html` when the break ends.
 - Redeploy with `website/deploy.sh`.

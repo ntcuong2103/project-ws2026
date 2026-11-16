@@ -92,13 +92,6 @@ def _write_if_changed(path: Path, text: str) -> None:
         path.write_text(text, encoding="utf-8")
 
 
-def _source_note(source: str, repo: str, ref: str) -> str:
-    return (
-        f"\n\n---\n\n<small>Generated from [`{source}`]({repo}/blob/{ref}/{source}). "
-        "Edit the lab repository, not this page.</small>\n"
-    )
-
-
 def _schedule_rows(readme: str) -> list[list[str]]:
     match = re.search(r"## Tentative 15-Week Schedule\n(.*?)\n## ", readme, re.DOTALL)
     if not match:
@@ -159,12 +152,12 @@ def _phase(title: str) -> str:
 def _week_status(number: int, extra: dict) -> tuple[str, str]:
     """(css modifier, label) for a week given the course's current position."""
     current = int(extra.get("current_week", 1))
-    if number == 8:
-        return "midterm", extra.get("midterm_label", "Midterm")
     if number < current:
         return "done", "Done"
     if number == current:
         return "next", extra.get("current_label", "Up next")
+    if number == 8:
+        return "midterm", extra.get("midterm_label", "Midterm")
     return "planned", "Planned" if number not in RELEASED_WEEKS else "Released"
 
 
@@ -213,12 +206,12 @@ def on_pre_build(config) -> None:  # noqa: ANN001 - MkDocs hook signature
                 + text[heading_end:]
             )
         text = _week_banner(number, config["extra"]) + text
-        _write_if_changed(DOCS / page, text + _source_note(source, repo, ref))
+        _write_if_changed(DOCS / page, text)
 
     for source, page in GUIDES.items():
         text = (REPO_ROOT / source).read_text(encoding="utf-8")
         text = _rewrite(text, source, page, repo, ref, pages)
-        _write_if_changed(DOCS / page, text + _source_note(source, repo, ref))
+        _write_if_changed(DOCS / page, text)
 
     readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
     plan = _rewrite(
@@ -237,11 +230,9 @@ def on_pre_build(config) -> None:  # noqa: ANN001 - MkDocs hook signature
         "Each session is 4 academic hours: a 5-minute review per group of the previous week's "
         "deliverable, then the week's lab. Weeks 8 and 15 are presentations.\n\n"
         '!!! tip "Where we are"\n'
-        "    Weeks 1–6 are done. Classes resume in December with Week 7, followed by the "
-        "Week 8 midterm on **Tuesday 15 December 2026**. Weeks 1–7 labs are available as "
-        "practice during the break.\n\n"
+        f"    {config['extra']['status_note']}\n\n"
         f'<div class="wk-grid">{cards}</div>\n\n'
         "## Detailed plan\n\n"
         f"{plan}\n"
     )
-    _write_if_changed(DOCS / "weeks/index.md", index + _source_note("README.md", repo, ref))
+    _write_if_changed(DOCS / "weeks/index.md", index)
