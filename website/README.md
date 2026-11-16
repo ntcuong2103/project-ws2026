@@ -29,8 +29,23 @@ project has a Git connection.
 Links to notebooks and scripts point to GitHub at `DOCS_SOURCE_REF` (default `main`). Until the
 merged labs are on `main`, set it to the branch that holds them.
 
+## Where things live
+
+| To change | Edit |
+| --- | --- |
+| Announcements | `docs/index.md` (the landing page renders its body) |
+| Current week, status labels, midterm countdown, staff | `extra:` in `mkdocs.yml` (`current_week`, `current_label`, `midterm_date`, `staff`) |
+| Week card titles and one-line blurbs | `WEEKS` in `hooks.py` |
+| Landing page layout (hero, pipeline, schedule, links) | `overrides/home.html` |
+| Colours, fonts, GitHub-style docs look | `docs/stylesheets/extra.css` (phase colours are the `--ph-*` tokens) |
+| Hero illustration | `tools/make_manuscript_svg.py`, then rerun it to regenerate `overrides/partials/manuscript.svg` |
+
+The hero illustration uses a real NomNaOCR page (the preface of *Đại Việt sử ký toàn thư*,
+`DVSKTT_thu_III_2a`) with its actual column layout and transcription.
+
 ## Weekly upkeep
 
-- Update the status banner and announcements in `docs/index.md`.
+- Move `current_week` forward in `mkdocs.yml` and add an announcement in `docs/index.md`.
 - When a week's lab is released, add its number to `RELEASED_WEEKS` in `hooks.py`.
+- Update the status band text in `overrides/home.html` when the break ends.
 - Redeploy with `website/deploy.sh`.
