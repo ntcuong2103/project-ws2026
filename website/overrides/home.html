@@ -4,58 +4,47 @@
 {{ super() }}
 <div class="lp">
 
-  <!-- Hero -->
   <section class="lp-hero">
-    <div class="lp-hero__glow" aria-hidden="true"></div>
     <div class="lp-wrap lp-hero__grid">
       <div class="lp-hero__copy">
-        <p class="lp-eyebrow">VGU · Winter Semester 2026 · Project course</p>
-        <h1 class="lp-hero__title">Teach a machine to read <span class="lp-grad">Hán-Nôm</span>.</h1>
+        <h1 class="lp-hero__title">Confidence-Weighted <span>Nôm</span> OCR</h1>
+        <p class="lp-hero__meta">VGU · Winter Semester 2026 · Dr. Nguyễn Tuấn Cường</p>
         <p class="lp-hero__lead">
-          Over 15 weeks, your team builds the full pipeline from a published research system:
-          detect every character on a historical page, recognize it as a tree of components,
-          align the predictions with line transcriptions, and turn that into confidence-weighted
-          training data.
+          Build a full OCR pipeline for historical Hán-Nôm pages: detect each character, recognize it,
+          align it with the transcription, and retrain on the results.
         </p>
         <div class="lp-hero__cta">
-          <a class="lp-btn lp-btn--primary" href="{{ 'getting-started/' | url }}">Start here</a>
-          <a class="lp-btn lp-btn--ghost" href="{{ 'weeks/week-07/' | url }}">Week 7 lab →</a>
-          <a class="lp-btn lp-btn--ghost" href="{{ config.repo_url }}">
-            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-            Lab repo
-          </a>
+          <a class="lp-btn lp-btn--primary" href="{{ 'getting-started/' | url }}">Get started</a>
+          <a class="lp-btn lp-btn--ghost" href="{{ 'weeks/week-07/' | url }}">Week 7 lab</a>
         </div>
-        <dl class="lp-stats">
-          <div><dt>15</dt><dd>weeks · 60 hours</dd></div>
-          <div><dt>2,953</dt><dd>NomNaOCR pages</dd></div>
-          <div><dt>472</dt><dd>IDS tokens</dd></div>
-          <div><dt>2×</dt><dd>A100 GPUs</dd></div>
-        </dl>
       </div>
       <figure class="lp-hero__art">
         {% include "partials/manuscript.svg" %}
-        <figcaption>Preface of <i>Đại Việt sử ký toàn thư</i> (NomNaOCR), with detected characters and the IDS of 記.</figcaption>
+        <figcaption>Preface of <i>Đại Việt sử ký toàn thư</i>, from NomNaOCR</figcaption>
       </figure>
     </div>
   </section>
 
-  <!-- Status -->
   <section class="lp-status" aria-label="Course status">
     <div class="lp-wrap lp-status__row">
-      <span class="lp-status__pill"><span class="lp-dot"></span>On break</span>
-      <p class="lp-status__text">Classes resume in <b>December with Week 7</b>. The <b>Week 8 midterm</b> is on <b>Tuesday 15 December 2026</b>.</p>
+      <span class="lp-status__pill">On break</span>
+      <p class="lp-status__text">Week 7 is in December. Midterm presentations: <b>Tuesday 15 December</b>.</p>
       <p class="lp-status__count" id="lp-countdown" data-target="{{ config.extra.midterm_date }}" aria-live="polite"></p>
     </div>
   </section>
 
-  <!-- Pipeline -->
   <section class="lp-section">
     <div class="lp-wrap">
-      <p class="lp-kicker">The pipeline</p>
-      <h2 class="lp-h2">Four stages, one system</h2>
-      <p class="lp-sub">The class moves through the stages together. Every team builds all of them on the whole corpus, so results are comparable at the final.</p>
+      <h2 class="lp-h2">Announcements</h2>
+      <div class="lp-news md-typeset">{{ page.content }}</div>
+    </div>
+  </section>
+
+  <section class="lp-section lp-section--alt">
+    <div class="lp-wrap">
+      <h2 class="lp-h2">Pipeline</h2>
       <ol class="lp-stages">
-        <li class="lp-stage lp-stage--detection">
+        <li><a class="lp-stage lp-stage--detection" href="{{ 'weeks/week-03/' | url }}">
           <svg class="lp-stage__art" viewBox="0 0 120 80" aria-hidden="true">
             <rect x="8" y="6" width="104" height="68" rx="6" class="ill-paper"/>
             <g class="ill-ink"><text x="30" y="32">史</text><text x="30" y="60">記</text><text x="60" y="32">全</text><text x="60" y="60">書</text><text x="90" y="32">大</text><text x="90" y="60">越</text></g>
@@ -63,10 +52,9 @@
           </svg>
           <span class="lp-stage__weeks">Weeks 3–4</span>
           <h3>Detect</h3>
-          <p>Train a single-class YOLO11 detector on MTH pages, adapt it to Nôm with Nakagawa, and measure it on NomNaOCR.</p>
-          <a href="{{ 'weeks/week-03/' | url }}">Detection labs →</a>
-        </li>
-        <li class="lp-stage lp-stage--recognition">
+          <p>YOLO11 character detector, adapted from MTH to Nôm.</p>
+        </a></li>
+        <li><a class="lp-stage lp-stage--recognition" href="{{ 'weeks/week-05/' | url }}">
           <svg class="lp-stage__art" viewBox="0 0 120 80" aria-hidden="true">
             <rect x="8" y="22" width="34" height="34" rx="5" class="ill-paper"/>
             <text x="25" y="47" class="ill-ink-t">安</text>
@@ -78,10 +66,9 @@
           </svg>
           <span class="lp-stage__weeks">Weeks 5–7</span>
           <h3>Recognize</h3>
-          <p>Decompose characters into IDS, then decode the BTTR recognizer both ways, left-to-right and right-to-left.</p>
-          <a href="{{ 'weeks/week-05/' | url }}">Recognition labs →</a>
-        </li>
-        <li class="lp-stage lp-stage--alignment">
+          <p>BTTR decodes each character as a tree of components, in both directions.</p>
+        </a></li>
+        <li><a class="lp-stage lp-stage--alignment" href="{{ 'weeks/week-09/' | url }}">
           <svg class="lp-stage__art" viewBox="0 0 120 80" aria-hidden="true">
             <g class="ill-tok"><rect x="10" y="10" width="18" height="18" rx="4"/><rect x="36" y="10" width="18" height="18" rx="4"/><rect x="62" y="10" width="18" height="18" rx="4"/><rect x="88" y="10" width="18" height="18" rx="4"/></g>
             <g class="ill-gt"><rect x="10" y="52" width="18" height="18" rx="4"/><rect x="36" y="52" width="18" height="18" rx="4"/><rect x="62" y="52" width="18" height="18" rx="4"/><rect x="88" y="52" width="18" height="18" rx="4"/></g>
@@ -90,10 +77,9 @@
           </svg>
           <span class="lp-stage__weeks">Weeks 9–11</span>
           <h3>Align</h3>
-          <p>Assign boxes to lines, then run a two-level dynamic program that matches predictions to the transcription at the IDS level.</p>
-          <a href="{{ 'weeks/week-09/' | url }}">Alignment plan →</a>
-        </li>
-        <li class="lp-stage lp-stage--pseudo-labeling">
+          <p>Match predictions to line transcriptions with dynamic programming.</p>
+        </a></li>
+        <li><a class="lp-stage lp-stage--pseudo-labeling" href="{{ 'weeks/week-12/' | url }}">
           <svg class="lp-stage__art" viewBox="0 0 120 80" aria-hidden="true">
             <g class="ill-bar"><rect x="16" y="20" width="14" height="50" rx="3"/><rect x="38" y="34" width="14" height="36" rx="3"/><rect x="60" y="12" width="14" height="58" rx="3"/><rect x="82" y="50" width="14" height="20" rx="3" class="ill-bar--low"/></g>
             <path d="M10 44h100" class="ill-thresh"/>
@@ -101,65 +87,22 @@
           </svg>
           <span class="lp-stage__weeks">Weeks 12–14</span>
           <h3>Self-train</h3>
-          <p>Weight each pseudo-label by its alignment confidence, fine-tune, and evaluate against the binary-flag baseline.</p>
-          <a href="{{ 'weeks/week-12/' | url }}">Pseudo-labeling plan →</a>
-        </li>
+          <p>Fine-tune on pseudo-labels weighted by alignment confidence.</p>
+        </a></li>
       </ol>
     </div>
   </section>
 
-  <!-- Schedule -->
-  <section class="lp-section lp-section--alt">
+  <section class="lp-section">
     <div class="lp-wrap">
-      <p class="lp-kicker">Schedule</p>
-      <h2 class="lp-h2">Week by week</h2>
-      <p class="lp-sub">Each session opens with a 5-minute review per team, then the week's lab. Weeks 8 and 15 are presentations.</p>
-      <div class="wk-grid">
+      <h2 class="lp-h2">Schedule</h2>
+      <div class="wk-grid wk-grid--compact">
         {% for w in config.extra.weeks %}
         <a class="wk-card wk-card--{{ w.phase }} wk-card--{{ w.status }}" href="{{ w.url | url }}">
           <span class="wk-card__top"><span class="wk-card__num">W{{ '%02d' % w.number }}</span><span class="wk-status wk-status--{{ w.status }}">{{ w.label }}</span></span>
           <span class="wk-card__title">{{ w.title }}</span>
-          <span class="wk-card__blurb">{{ w.blurb }}</span>
         </a>
         {% endfor %}
-      </div>
-    </div>
-  </section>
-
-  <!-- Start here -->
-  <section class="lp-section">
-    <div class="lp-wrap">
-      <p class="lp-kicker">Start here</p>
-      <h2 class="lp-h2">Everything you need, in one place</h2>
-      <div class="lp-links">
-        <a class="lp-link" href="{{ 'getting-started/' | url }}"><span class="lp-link__icon">01</span><span><b>Getting started</b><small>Account, team workspaces, clone the lab repo, first Slurm job</small></span></a>
-        <a class="lp-link" href="{{ 'guides/slurm/' | url }}"><span class="lp-link__icon">02</span><span><b>Slurm quick guide</b><small>Batch jobs, interactive sessions, GPU and MIG types</small></span></a>
-        <a class="lp-link" href="{{ 'resources/' | url }}"><span class="lp-link__icon">03</span><span><b>Resources</b><small>Datasets, the recognizer checkpoint, repositories, tools</small></span></a>
-        <a class="lp-link" href="{{ 'syllabus/' | url }}"><span class="lp-link__icon">04</span><span><b>Syllabus</b><small>Objectives, session format, grading, reading list</small></span></a>
-        <a class="lp-link" href="{{ 'guides/midterm/' | url }}"><span class="lp-link__icon">05</span><span><b>Midterm rules</b><small>15-minute talk, team-membership slide</small></span></a>
-        <a class="lp-link" href="{{ 'help/' | url }}"><span class="lp-link__icon">06</span><span><b>Help &amp; FAQ</b><small>Known errors and their fixes, who to ask</small></span></a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Announcements + staff -->
-  <section class="lp-section lp-section--alt">
-    <div class="lp-wrap lp-split">
-      <div class="lp-news">
-        <p class="lp-kicker">Announcements</p>
-        <div class="md-typeset">{{ page.content }}</div>
-      </div>
-      <div class="lp-staff">
-        <p class="lp-kicker">Staff</p>
-        <ul>
-          {% for s in config.extra.staff %}
-          <li>
-            <span class="lp-avatar" aria-hidden="true">{{ s.initials }}</span>
-            <span><b>{% if s.url %}<a href="{{ s.url }}">{{ s.name }}</a>{% else %}{{ s.name }}{% endif %}</b><small>{{ s.role }}</small></span>
-          </li>
-          {% endfor %}
-        </ul>
-        <p class="lp-staff__note">Questions go to the class group first. For access problems, contact the staff with your group number and the full error message.</p>
       </div>
     </div>
   </section>
@@ -176,9 +119,8 @@
   (function () {
     var el = document.getElementById("lp-countdown");
     if (!el) return;
-    var target = new Date(el.dataset.target);
-    var days = Math.ceil((target - new Date()) / 86400000);
-    el.textContent = days > 1 ? days + " days to the midterm" : days === 1 ? "Midterm is tomorrow" : days === 0 ? "Midterm is today" : "";
+    var days = Math.ceil((new Date(el.dataset.target) - new Date()) / 86400000);
+    el.textContent = days > 1 ? days + " days to go" : days === 1 ? "Tomorrow" : days === 0 ? "Today" : "";
   })();
 </script>
 {% endblock %}

@@ -34,9 +34,9 @@ merged labs are on `main`, set it to the branch that holds them.
 | To change | Edit |
 | --- | --- |
 | Announcements | `docs/index.md` (the landing page renders its body) |
-| Current week, status labels, midterm countdown, staff | `extra:` in `mkdocs.yml` (`current_week`, `current_label`, `midterm_date`, `staff`) |
+| Current week, status labels, midterm countdown | `extra:` in `mkdocs.yml` (`current_week`, `current_label`, `midterm_date`) |
 | Week card titles and one-line blurbs | `WEEKS` in `hooks.py` |
-| Landing page layout (hero, pipeline, schedule, links) | `overrides/home.html` |
+| Landing page layout (hero, status strip, announcements, pipeline, schedule) | `overrides/home.html` |
 | Colours, fonts, GitHub-style docs look | `docs/stylesheets/extra.css` (phase colours are the `--ph-*` tokens) |
 | Hero illustration | `tools/make_manuscript_svg.py`, then rerun it to regenerate `overrides/partials/manuscript.svg` |
 
