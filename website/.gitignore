@@ -1,0 +1,8 @@
+# Built site and pages generated from the lab markdown at build time
+site/
+docs/weeks/
+docs/guides/
+# Deployment secrets and local Vercel state
+.env
+.vercel/
+.venv/

@@ -1,0 +1,12 @@
+[project]
+name = "nom-ocr-course-site"
+version = "0.1.0"
+description = "Static documentation site for the Confidence-Weighted Nom OCR course"
+requires-python = ">=3.10"
+dependencies = [
+    "mkdocs>=1.6,<1.7",
+    "mkdocs-material>=9.5,<10",
+]
+
+[tool.uv]
+package = false

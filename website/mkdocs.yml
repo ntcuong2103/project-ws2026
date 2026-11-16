@@ -1,0 +1,109 @@
+site_name: Nôm OCR · WS 2026
+site_description: Course site for the Confidence-Weighted Nôm OCR project course (VGU, WS 2026)
+site_url: !ENV [DOCS_SITE_URL, ""]
+repo_url: https://github.com/ntcuong2103/project-ws2026
+repo_name: ntcuong2103/project-ws2026
+edit_uri: ""
+docs_dir: docs
+copyright: Confidence-Weighted Nôm OCR · Vietnamese-German University · WS 2026
+
+theme:
+  name: material
+  language: en
+  font:
+    text: IBM Plex Sans
+    code: IBM Plex Mono
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - toc.follow
+
+extra_css:
+  - stylesheets/extra.css
+
+hooks:
+  - hooks.py
+
+extra:
+  # Where links to notebooks, scripts and fixtures point. Use the branch that
+  # holds the merged labs until it is merged into main.
+  source_repo: https://github.com/ntcuong2103/project-ws2026
+  source_ref: !ENV [DOCS_SOURCE_REF, main]
+  generator: false
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Weeks:
+      - weeks/index.md
+      - "1 · Orientation": weeks/week-01.md
+      - "2 · Foundations": weeks/week-02.md
+      - "3 · Detection I": weeks/week-03.md
+      - "4 · Detection II": weeks/week-04.md
+      - "5 · Recognition I": weeks/week-05.md
+      - "6 · Recognition II": weeks/week-06.md
+      - "7 · Recognition III": weeks/week-07.md
+      - "8 · Midterm": weeks/week-08.md
+      - "9 · Alignment I": weeks/week-09.md
+      - "10 · Alignment II": weeks/week-10.md
+      - "11 · Alignment III": weeks/week-11.md
+      - "12 · Pseudo-labeling I": weeks/week-12.md
+      - "13 · Pseudo-labeling II": weeks/week-13.md
+      - "14 · Integration": weeks/week-14.md
+      - "15 · Final": weeks/week-15.md
+  - Guides:
+      - Slurm quick guide: guides/slurm.md
+      - Workspace rules: guides/workspace-rules.md
+      - Lab data contract: guides/data-contract.md
+      - Team project contract: guides/project-contract.md
+  - Syllabus: syllabus.md
+  - Assessments:
+      - assessments.md
+      - Midterm rules: guides/midterm.md
+  - Resources: resources.md
+  - Help & FAQ: help.md
