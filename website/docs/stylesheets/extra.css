@@ -369,3 +369,13 @@
   .md-typeset table:not([class]) th, .md-typeset table:not([class]) td { min-width: 0; padding: .45em .55em; overflow-wrap: anywhere; }
   .md-typeset table:not([class]) code { word-break: break-all; }
 }
+
+/* Contact cards (Help page) */
+.md-typeset .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .8rem; margin: 1rem 0 1.4rem; }
+.md-typeset .contact-card { padding: .8rem 1rem; border: 1px solid var(--gh-border-muted); border-radius: 10px; background: var(--gh-subtle); }
+.md-typeset .contact-card p { margin: 0; display: flex; flex-direction: column; gap: .15rem; }
+.md-typeset .contact-card__role { font-size: .64rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--gh-muted); }
+.md-typeset .contact-card a { font-size: .68rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.md-typeset .md-button { border-radius: 8px; font-size: .74rem; padding: .5em 1.1em; }
+.md-typeset .md-button--primary { background: #fbbf24; border-color: #fbbf24; color: #0d1117 !important; }
+.md-typeset .md-button--primary:hover { background: #fcd34d; border-color: #fcd34d; }

@@ -7,10 +7,63 @@
 3. For access problems (accounts, workspaces, GPU) or private matters, contact the teaching
    staff.
 
-**Instructor:** Dr. Nguyễn Tuấn Cường · **Teaching assistants:** Minh, Dương
-
 When you ask, include the command you ran, the full error message, your group number, and the
 Slurm job ID if there is one.
+
+## Contact
+
+<div class="contact-grid" markdown>
+<div class="contact-card" markdown>
+<span class="contact-card__role">Instructor</span>
+**Dr. Nguyễn Tuấn Cường**
+[cuong.nt2@vgu.edu.vn](mailto:cuong.nt2@vgu.edu.vn)
+</div>
+<div class="contact-card" markdown>
+<span class="contact-card__role">Teaching assistant</span>
+**Tôn Thất Nhật Minh**
+[10422050@student.vgu.edu.vn](mailto:10422050@student.vgu.edu.vn)
+</div>
+<div class="contact-card" markdown>
+<span class="contact-card__role">Teaching assistant</span>
+**Trần Hải Dương**
+[10422021@student.vgu.edu.vn](mailto:10422021@student.vgu.edu.vn)
+</div>
+</div>
+
+### How to email us
+
+- **Send every email to both TAs** so whoever is free first can answer. Write to Dr. Cường
+  only for grading or private matters, and copy both TAs.
+- **Use this subject line:** `[ProjectW26] - Group name - Email title`, for example
+  `[ProjectW26] - Group 3 - Slurm job stuck in PENDING`.
+- **Write from your VGU student address**, and name your group in the first line.
+- **Keep it to one topic per email.** Reply in the same thread for follow-ups.
+- **Include what we need to help:** what you tried, the exact command, the full error message
+  (as text, not a screenshot), and the Slurm job ID if there is one.
+
+[Write to both TAs](mailto:10422050@student.vgu.edu.vn,10422021@student.vgu.edu.vn?subject=%5BProjectW26%5D%20-%20Group%20name%20-%20Email%20title){ .md-button .md-button--primary }
+
+```text title="Email template"
+To:      10422050@student.vgu.edu.vn, 10422021@student.vgu.edu.vn
+Subject: [ProjectW26] - Group name - Email title
+
+Dear Minh and Dương,
+
+Group: <group name / number>
+Members involved: <names>
+
+What we are trying to do:
+<one or two sentences>
+
+What we tried:
+<commands, files, Slurm job ID>
+
+What happened:
+<full error message, pasted as text>
+
+Best regards,
+<your name, student ID>
+```
 
 ## FAQ
 

@@ -76,3 +76,25 @@ Details are on the [assessments page](assessments.md).
   member must be able to explain the code their team submits.
 - **Contributions are individual.** The midterm requires a slide listing every member's role
   and contribution, presented by that member.
+
+## Academic integrity
+
+Plagiarism is not tolerated in any form, at any stage of the course.
+
+- **Submit only your team's own work.** Code, notebooks, reports, slides, and figures must be
+  written by your team. Copying from another team, a previous year, or any outside source
+  without credit is plagiarism.
+- **No sharing between teams.** Discussing ideas is fine; exchanging code, results, reports, or
+  slides is not. Don't give your work to another team, and don't take theirs.
+- **Credit every source.** Cite papers, repositories, tutorials, and any code you adapted, right
+  where you use it. The lab repository and its reference notebooks count as sources too.
+- **Report real results only.** Never fabricate, alter, or copy numbers, plots, or outputs.
+  Every result must come from a run your team can reproduce on request.
+- **AI tools don't change authorship.** Code or text produced with an AI tool is your team's
+  responsibility, must follow the [workspace rules](guides/workspace-rules.md), and must be
+  explained by the member who submits it.
+- **Consequences.** Any confirmed case is reported to the university and the work receives
+  zero. All members who submitted it are held responsible.
+
+If you are unsure whether something is allowed, [ask before you submit](help.md#contact).
+
